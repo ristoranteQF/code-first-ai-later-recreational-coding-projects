@@ -1,0 +1,154 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  min-height: 100vh;
+  /* margin-bottom: 3rem; */
+}
+button {
+cursor: pointer;
+}
+label {
+  cursor: pointer;
+}
+
+.app-container {
+  height: 600px;
+  width: 500px;
+}
+
+.header {
+  /* background-color: bisque; */
+  margin-top: 1rem;
+}
+
+.title {
+  margin-top: 3rem;
+  margin-bottom: 0.5rem;
+  font-weight: bolder;
+}
+
+.current-date {
+  color: grey;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.input-text {
+  width: 90%;
+  padding: 0.5rem; 
+  margin-right: 0.3rem;
+  border: 1px solid lightgrey;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+.add-todo-btn {
+  background-color: rgb(83, 56, 240);
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bolder;
+  border-radius: 0.5rem;
+}
+.add-todo-btn:hover {
+  cursor: pointer;
+  background-color: rgb(104, 81, 238);
+}
+
+
+
+.form-container {
+  /* background-color: aquamarine; */
+}
+
+.no-tasks-container {
+  background-color: rgb(72, 42, 241);
+  margin-bottom: 1rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: gold;
+  border-radius: 0.5rem;
+}
+.no-tasks-container i {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.no-tasks-description {
+  color: white;
+}
+
+
+.task-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid lightgrey;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+input[type="checkbox"]{
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  accent-color: rgb(83, 56, 240);
+}
+
+.task-left-group {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  max-width: 350px;
+}
+/* .task-right-group {
+
+} */
+
+
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+}
+
+
+
+.task-count-container {
+  margin-top: 2rem;
+  color: grey;
+}
+
+
+
+
+
+
+
+
+
+
+
+.completed-task {
+  text-decoration: line-through;
+  color: grey;
+}
+
+.no-tasks-container.hidden {
+  display: none;
+}
