@@ -1,15 +1,16 @@
 // DOM elements
-const currentDate = document.querySelector(".current-date");
-const inputTextField = document.querySelector(".input-text");
-const addTaskButton = document.querySelector(".add-todo-btn");
-const taskCount = document.querySelector(".task-count");
+const currentDate = document.querySelector<HTMLElement>(".current-date");
+const inputTextField = document.querySelector<HTMLInputElement>(".input-text");
+const addTaskButton = document.querySelector<HTMLButtonElement>(".add-todo-btn");
+const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 
-const todoContainer: Element | null = document.querySelector(".todo-container");
-const noTasksContainer = document.querySelector(".no-tasks-container");
+const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
+const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-container");
 
 
 
 // TODO: create a trash bin page where users can recover their deleted tasks
+// TODO: edit task function from the localstorage API
 
 interface Todo {
   id: number;
@@ -17,13 +18,11 @@ interface Todo {
   completed: boolean;
 }
 
-
-
 let todos: Todo[] = [];
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const userTasks = loadTasks() || [];
+  const userTasks: Todo[] = loadTasks() || [];
   todos = userTasks;
   renderTasks();
 })
@@ -44,6 +43,7 @@ todoContainer?.addEventListener("change", e => {
 
   task.completed = target.checked;
 
+  saveTasks();
   renderTasks();
 });
 
@@ -66,7 +66,7 @@ todoContainer?.addEventListener("click", e => {
 
 
 
-
+// CLICK: add task button
 addTaskButton?.addEventListener("click", () => {
   // get the text from the input field
   const userInput = inputTextField?.value.trim();
@@ -82,11 +82,13 @@ addTaskButton?.addEventListener("click", () => {
     completed: false
   }
 
-  // todos.push(todoItem);
-  addTask(todoItem);
+  todos.push(todoItem);
+  saveTasks();
 
   // remove everything inside the input text field
-  inputTextField.value = "";
+  if(inputTextField){
+    inputTextField.value = "";
+  }
 
   // render the freshly updated data
   renderTasks();
@@ -103,17 +105,21 @@ addTaskButton?.addEventListener("click", () => {
 function loadTasks(): Todo[] {
   const data: string | null = localStorage.getItem("todos");
 
-  if(data){
-    return JSON.parse(data)
-  } else {
+  if(!data) return [];
+
+  try {
+    return JSON.parse(String(data));
+  } 
+  catch(error){
+    console.error(error);
     return [];
   }
 }
 
-function addTask(todo: Todo){
-  if(!todo) return;
+function saveTasks(){
+  if(!todos) return;
 
-  const data: string = JSON.stringify(todo);
+  const data: string = JSON.stringify(todos);
   localStorage.setItem("todos", data);
 }
 
@@ -122,7 +128,6 @@ function editTask(id: number){
   
 }
 
-// TODO
 function deleteTask(id: number): void {
   for(let i = 0; i < todos.length; i++){
     if(todos[i].id === id){
@@ -130,6 +135,8 @@ function deleteTask(id: number): void {
       break;
     }
   }
+
+  saveTasks();
 }
 
 
@@ -141,7 +148,9 @@ function deleteTask(id: number): void {
 function renderTasks(){
 
   if(todos.length === 0){
-    noTasksContainer?.classList.toggle("hidden");
+    noTasksContainer?.classList.remove("hidden");
+  } else {
+    noTasksContainer?.classList.add("hidden");
   }
 
 
@@ -217,8 +226,8 @@ function renderTasks(){
 
 // Utility functions
 function getCurrentDate(): string {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const days: String[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months: String[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   const now = new Date();
   const day = now.getDay();
