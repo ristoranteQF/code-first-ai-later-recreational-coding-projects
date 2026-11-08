@@ -22,7 +22,18 @@
       <form action="#" class="form-container">
         <div class="input-group">
           <input class="input-text" type="text" placeholder="What needs doing?" required>
+          <select name="priority" id="priority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
           <input class="add-todo-btn" type="button" value="Add">
+        </div>
+
+        <div class="tasks-status-container">
+          <button type="button" class="tasks-status-btn active-status-style">All <span class="all-tasks-count">6</span></button>
+          <button type="button" class="tasks-status-btn">Active <span class="active-tasks-count">4</span></button>
+          <button type="button" class="tasks-status-btn">Done <span class="done-tasks-count">2</span></button>
         </div>
 
 
@@ -37,16 +48,18 @@
         <div class="todo-container">
           <!--  Hard coded todo items  -->
 
-          <!-- <div class="task-group" id="task-1">
+          <div class="task-group" id="task-1">
             <div class="task-left-group">
               <input type="checkbox" name="task" id="task-checkbox-1">
               <label for="task-checkbox-1">Finish JS tutorial chapter 4</label>
             </div>
 
             <div class="task-right-group">
-              <button class="delete-btn"><i class="fa-solid fa-trash-can"></i></button>
+              <span class="priority-element priority-element-low-styles">Low</span>
+              <button type="button" class="edit-btn"><i class="fa-solid fa-edit"></i></button>
+              <button type="button" class="delete-btn"><i class="fa-solid fa-trash-can"></i></button>
             </div>
-          </div> -->
+          </div>
 
 
           <!-- <div class="task-group" id="task-2">
@@ -71,6 +84,7 @@
 
         <div class="task-count-container">
           <p><span class="task-count">2 tasks</span></p>
+          <button type="button" class="clear-completed-tasks-btn">Clear completed</button>
         </div>
       </form>
 

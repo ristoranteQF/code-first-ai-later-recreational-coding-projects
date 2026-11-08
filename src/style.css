@@ -18,6 +18,10 @@ cursor: pointer;
 label {
   cursor: pointer;
 }
+option {
+  cursor: pointer;
+}
+
 
 .app-container {
   height: 600px;
@@ -69,9 +73,33 @@ label {
 
 
 
-.form-container {
-  /* background-color: aquamarine; */
+.tasks-status-container {
+  margin-top: -0.6rem;
+  margin-bottom: 1.5rem;
 }
+.tasks-status-btn {
+  color: black;
+  background: none;
+  padding: 0.5rem;
+  border: 1px solid lightgrey;
+  border-radius: 1rem;
+  margin-right: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  width: 70px;
+}
+.tasks-status-btn:hover {
+  background-color: rgb(240, 238, 238);
+  color: black;
+}
+
+.active-status-style {
+  background-color: rgb(72, 42, 241);
+  color: white;
+  font-weight: bolder;
+}
+
+
 
 .no-tasks-container {
   background-color: rgb(72, 42, 241);
@@ -116,11 +144,27 @@ input[type="checkbox"]{
   align-items: center;
   max-width: 350px;
 }
-/* .task-right-group {
+.task-right-group {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
 
-} */
 
-
+.priority-element {
+  background-color: lightgrey;
+  color: black;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: bolder;
+  font-size: 0.9rem;
+}
+.edit-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+}
 .delete-btn {
   background: none;
   border: none;
@@ -132,6 +176,32 @@ input[type="checkbox"]{
 .task-count-container {
   margin-top: 2rem;
   color: grey;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.clear-completed-tasks-btn {
+  background: none;
+  border: 1px solid lightgrey;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: bolder;
+}
+.clear-completed-tasks-btn:hover {
+  background-color: rgb(249, 249, 249);
+}
+
+#priority {
+  margin-left: 0.3rem;
+  margin-right: 0.5rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+  font-weight: lighter;
+  border: 1px solid lightgrey;
+  border-radius: 0.5rem;
+  background-color: white;
+  cursor: pointer;
 }
 
 
@@ -143,6 +213,10 @@ input[type="checkbox"]{
 
 
 
+
+
+
+/* Classes that are added dynamically  */
 
 .completed-task {
   text-decoration: line-through;
@@ -151,4 +225,20 @@ input[type="checkbox"]{
 
 .no-tasks-container.hidden {
   display: none;
+}
+
+
+.priority-element-high-styles {
+  background-color: rgb(249, 203, 203);
+  color: rgb(219, 16, 16);
+}
+.priority-element-medium-styles {
+  background-color: rgb(246, 217, 143);
+  color: rgb(138, 118, 7);
+  font-weight: bolder;
+}
+.priority-element-low-styles {
+  background-color: lightgreen;
+  color: green;
+  font-weight: bolder;
 }

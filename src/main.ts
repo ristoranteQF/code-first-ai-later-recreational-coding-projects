@@ -145,79 +145,81 @@ function deleteTask(id: number): void {
 
 // UI rendering
 
-function renderTasks(){
+// function renderTasks(){
 
-  if(todos.length === 0){
-    noTasksContainer?.classList.remove("hidden");
-  } else {
-    noTasksContainer?.classList.add("hidden");
-  }
-
-
-  todoContainer.innerHTML = "";
-
-  for(let i = 0; i < todos.length; i++){
-    const taskGroup = document.createElement("div");
-    taskGroup.classList.add("task-group");
-    taskGroup.id = `task-${todos[i].id}`;
-
-    const taskLeftGroup = document.createElement("div");
-    taskLeftGroup.classList.add("task-left-group");
-    const taskRightGroup = document.createElement("div");
-    taskRightGroup.classList.add("task-right-group");
+//   if(todos.length === 0){
+//     noTasksContainer?.classList.remove("hidden");
+//   } else {
+//     noTasksContainer?.classList.add("hidden");
+//   }
 
 
-    const taskCheckbox = document.createElement("input");
-    taskCheckbox.type = "checkbox";
-    taskCheckbox.name = "task";
-    taskCheckbox.id = `task-checkbox-${todos[i].id}`;
-    taskCheckbox.checked = true ? todos[i].completed : false;
+//   if(todoContainer){
+//     todoContainer.innerHTML = "";
+//   }
 
-    const taskLabel = document.createElement("label");
-    taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
-    taskLabel.textContent = `${todos[i].title}`;
-    if(todos[i].completed){
-      taskLabel.classList.add("completed-task");
-    } else {
-      taskLabel.classList.remove("completed-task");
-    }
+//   for(let i = 0; i < todos.length; i++){
+//     const taskGroup = document.createElement("div");
+//     taskGroup.classList.add("task-group");
+//     taskGroup.id = `task-${todos[i].id}`;
 
-    taskLeftGroup.appendChild(taskCheckbox);
-    taskLeftGroup.appendChild(taskLabel);
+//     const taskLeftGroup = document.createElement("div");
+//     taskLeftGroup.classList.add("task-left-group");
+//     const taskRightGroup = document.createElement("div");
+//     taskRightGroup.classList.add("task-right-group");
 
 
-    const deleteTaskBtn = document.createElement("button");
-    deleteTaskBtn.classList.add("delete-btn");
-    const deleteBtnIcon = document.createElement("i");
-    deleteBtnIcon.classList.add("fa-solid", "fa-trash-can");
-    deleteTaskBtn.appendChild(deleteBtnIcon);
+//     const taskCheckbox = document.createElement("input");
+//     taskCheckbox.type = "checkbox";
+//     taskCheckbox.name = "task";
+//     taskCheckbox.id = `task-checkbox-${todos[i].id}`;
+//     taskCheckbox.checked = true ? todos[i].completed : false;
 
-    taskRightGroup.appendChild(deleteTaskBtn);
+//     const taskLabel = document.createElement("label");
+//     taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
+//     taskLabel.textContent = `${todos[i].title}`;
+//     if(todos[i].completed){
+//       taskLabel.classList.add("completed-task");
+//     } else {
+//       taskLabel.classList.remove("completed-task");
+//     }
 
-    taskGroup.appendChild(taskLeftGroup);
-    taskGroup.appendChild(taskRightGroup);
-
-
-    todoContainer?.appendChild(taskGroup);
-  }
-
-
-  let activeTasks = todos.filter(todo => {
-    return !todo.completed;
-  });
-
-  const tasksCount: number = activeTasks.length;
-
-  if(tasksCount !== 1){
-    taskCount.textContent = `${String(tasksCount)} tasks left.`;
-  } else {
-    taskCount.textContent = `${String(tasksCount)} task left.`;
-  }
+//     taskLeftGroup.appendChild(taskCheckbox);
+//     taskLeftGroup.appendChild(taskLabel);
 
 
-  // render current present date
-  currentDate.textContent = getCurrentDate();
-}
+//     const deleteTaskBtn = document.createElement("button");
+//     deleteTaskBtn.classList.add("delete-btn");
+//     const deleteBtnIcon = document.createElement("i");
+//     deleteBtnIcon.classList.add("fa-solid", "fa-trash-can");
+//     deleteTaskBtn.appendChild(deleteBtnIcon);
+
+//     taskRightGroup.appendChild(deleteTaskBtn);
+
+//     taskGroup.appendChild(taskLeftGroup);
+//     taskGroup.appendChild(taskRightGroup);
+
+
+//     todoContainer?.appendChild(taskGroup);
+//   }
+
+
+//   let activeTasks = todos.filter(todo => {
+//     return !todo.completed;
+//   });
+
+//   const tasksCount: number = activeTasks.length;
+
+//   if(tasksCount !== 1){
+//     taskCount ? taskCount.textContent = `${String(tasksCount)} tasks left.` : "Unknown error has occurred.";
+//   } else {
+//     taskCount ? taskCount.textContent = `${String(tasksCount)} task left.` : "Unknown error has occurred.";
+//   }
+
+
+//   // render current present date
+//   currentDate ? currentDate.textContent = getCurrentDate() : "Unknown error has occurred.";
+// }
 
 
 
