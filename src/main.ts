@@ -3,6 +3,7 @@ const currentDate = document.querySelector<HTMLElement>(".current-date");
 const inputTextField = document.querySelector<HTMLInputElement>(".input-text");
 const addTaskButton = document.querySelector<HTMLButtonElement>(".add-todo-btn");
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
+const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
 
 const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
 const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-container");
@@ -15,6 +16,7 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-conta
 interface Todo {
   id: number;
   title: string;
+  priority: string;
   completed: boolean;
 }
 
@@ -75,10 +77,13 @@ addTaskButton?.addEventListener("click", () => {
     return;
   }
 
+  const taskPriority = priorityElement?.value;
+
   // create a Todo object and push it to the todos global array
   const todoItem: Todo = {
     id: Date.now(),
     title: String(userInput),
+    priority: String(taskPriority),
     completed: false
   }
 
@@ -93,6 +98,8 @@ addTaskButton?.addEventListener("click", () => {
   // render the freshly updated data
   renderTasks();
 })
+
+
 
 
 
@@ -144,7 +151,6 @@ function deleteTask(id: number): void {
 
 
 // UI rendering
-
 // function renderTasks(){
 
 //   if(todos.length === 0){

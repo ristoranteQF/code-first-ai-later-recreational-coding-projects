@@ -4,6 +4,13 @@
   box-sizing: border-box;
 }
 
+
+:root {
+  --primary-color: rgb(83, 56, 240);
+}
+
+
+
 body {
   font-family: sans-serif;
   display: flex;
@@ -17,6 +24,7 @@ cursor: pointer;
 }
 label {
   cursor: pointer;
+  overflow: hidden;
 }
 option {
   cursor: pointer;
@@ -25,12 +33,18 @@ option {
 
 .app-container {
   height: 600px;
-  width: 500px;
+  width: 450px;
 }
 
 .header {
-  /* background-color: bisque; */
   margin-top: 1rem;
+}
+.header-information {
+  display: flex;
+  justify-content: space-between;
+}
+.header-information p {
+  color: grey;
 }
 
 .title {
@@ -41,7 +55,7 @@ option {
 
 .current-date {
   color: grey;
-  margin-bottom: 2rem;
+  margin-bottom: 1.6rem;
 }
 
 .input-group {
@@ -93,11 +107,6 @@ option {
   color: black;
 }
 
-.active-status-style {
-  background-color: rgb(72, 42, 241);
-  color: white;
-  font-weight: bolder;
-}
 
 
 
@@ -127,7 +136,7 @@ option {
   align-items: center;
   margin-bottom: 1rem;
   border: 1px solid lightgrey;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   padding: 1rem;
 }
 input[type="checkbox"]{
@@ -142,14 +151,67 @@ input[type="checkbox"]{
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  max-width: 350px;
+  /* max-width: 350px; */
+  width: 60%;
+  overflow: visible;
 }
+/* .task-input-element {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+  width: 100%;
+} */
+/* .task-input-element:focus {
+  outline: none;
+  border: none;
+} */
 .task-right-group {
   display: flex;
   gap: 20px;
   justify-content: center;
   align-items: center;
+  width: 35%;
 }
+.task-right-group-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.task-right-group-edit-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+.edit-save-btn {
+  flex: 1;
+  background-color: rgb(83, 56, 240);
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: bolder;
+  border: none;
+}
+.edit-save-btn:hover {
+  background-color: rgb(105, 82, 236);
+}
+.edit-cancel-btn {
+  flex: 1;
+  background-color: white;
+  padding: 0.6rem;
+  border: 1px solid lightgrey;
+  border-radius: 0.5rem;
+  color: black;
+  font-size: 1rem;
+}
+.edit-cancel-btn:hover {
+  background-color: rgb(238, 235, 235);
+}
+
 
 
 .priority-element {
@@ -186,7 +248,6 @@ input[type="checkbox"]{
   border-radius: 0.5rem;
   padding: 0.5rem;
   font-size: 0.9rem;
-  font-weight: bolder;
 }
 .clear-completed-tasks-btn:hover {
   background-color: rgb(249, 249, 249);
@@ -240,5 +301,31 @@ input[type="checkbox"]{
 .priority-element-low-styles {
   background-color: lightgreen;
   color: green;
+  font-weight: bolder;
+}
+
+.hide-element {
+  display: none;
+}
+
+
+.task-input-editing {
+  border: 1px solid lightgrey;
+}
+.task-group-editing {
+  border: 2px solid var(--primary-color);
+}
+
+
+
+.active-task {
+  border: 1px solid lightgrey;
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+}
+.active-status-style {
+  background-color: rgb(72, 42, 241);
+  color: white;
   font-weight: bolder;
 }
