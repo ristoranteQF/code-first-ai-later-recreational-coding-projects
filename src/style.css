@@ -147,6 +147,14 @@ input[type="checkbox"]{
   accent-color: rgb(83, 56, 240);
 }
 
+.input-label {
+}
+.edit-input {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid lightgrey;
+}
+
 .task-left-group {
   display: flex;
   justify-content: flex-start;
