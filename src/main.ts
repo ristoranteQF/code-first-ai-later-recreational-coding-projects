@@ -7,6 +7,7 @@ const editTaskInput = document.querySelector<HTMLInputElement>(".edit-input");
 
 const addTaskButton = document.querySelector<HTMLButtonElement>(".add-todo-btn");
 const clearCompletedTasksBtn = document.querySelector<HTMLButtonElement>(".clear-completed-tasks-btn");
+const tasksStatusButtons = document.querySelectorAll<HTMLButtonElement>("button.tasks-status-btn");
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
 
@@ -15,8 +16,8 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-conta
 
 
 
-// TODO: all, active, done buttons functionality
-// TODO: add the missing pieces of the render UI function
+// TODO: all, active, done buttons functionality - DONE
+// TODO: add the missing pieces of the render UI function, priority label and edit button
 // TODO: edit button functionality
 // TODO: dynamic buttons Save and Cancel functionality
 // TODO: saved automatically functionality
@@ -56,7 +57,24 @@ todoContainer?.addEventListener("change", e => {
   task.completed = target.checked;
 
   saveTasks();
-  renderTasks();
+  
+  // render the freshly updated data based on which status category is present on the UI
+  let taskStatusCategory: string = "";
+  tasksStatusButtons.forEach(btn => {
+    if(btn.classList.contains("active-status-style")){
+      taskStatusCategory = btn.textContent.split(" ")[0];
+    }
+  })
+
+  if(taskStatusCategory === "All"){
+    renderAllTasks();
+  } else if(taskStatusCategory === "Active"){
+    renderActiveTasks();
+  } else if(taskStatusCategory === "Done"){
+    renderCompletedTasks();
+  } else {
+    console.error("An unknown error has occurred.");
+  }
 });
 
 // CLICK: delete button
@@ -73,7 +91,24 @@ todoContainer?.addEventListener("click", e => {
   const taskId = Number(taskGroup.id.split("-")[1]);
 
   deleteTask(taskId);
-  renderTasks();
+  
+  // render the UI based on which status category button has the .active-status-style
+  let taskStatusCategory: string = "";
+  tasksStatusButtons.forEach(btn => {
+    if(btn.classList.contains("active-status-style")){
+      taskStatusCategory = btn.textContent.split(" ")[0];
+    }
+  })
+
+  if(taskStatusCategory === "All"){
+    renderAllTasks();
+  } else if(taskStatusCategory === "Active"){
+    renderActiveTasks();
+  } else if(taskStatusCategory === "Done"){
+    renderCompletedTasks();
+  } else {
+    console.error("An unknown error has occurred.");
+  }
 });
 
 // CLICK: edit task button
@@ -117,8 +152,23 @@ addTaskButton?.addEventListener("click", () => {
     inputTextField.value = "";
   }
 
-  // render the freshly updated data
-  renderTasks();
+  // render the freshly updated data based on which status category is present on the UI
+  let taskStatusCategory: string = "";
+  tasksStatusButtons.forEach(btn => {
+    if(btn.classList.contains("active-status-style")){
+      taskStatusCategory = btn.textContent.split(" ")[0];
+    }
+  })
+
+  if(taskStatusCategory === "All"){
+    renderAllTasks();
+  } else if(taskStatusCategory === "Active"){
+    renderActiveTasks();
+  } else if(taskStatusCategory === "Done"){
+    renderCompletedTasks();
+  } else {
+    console.error("An unknown error has occurred.");
+  }
 })
 
 
@@ -154,12 +204,54 @@ editTaskInput?.addEventListener("keydown", (e) => {
 })
 
 
-
 // CLICK: clear completed tasks button
 clearCompletedTasksBtn?.addEventListener("click", () => {
   todos = todos.filter(todo => todo.completed === false);
   saveTasks();
-  renderTasks();
+  
+
+  // render the freshly updated data based on which status category is present on the UI
+  let taskStatusCategory: string = "";
+  tasksStatusButtons.forEach(btn => {
+    if(btn.classList.contains("active-status-style")){
+      taskStatusCategory = btn.textContent.split(" ")[0];
+    }
+  })
+
+  if(taskStatusCategory === "All"){
+    renderAllTasks();
+  } else if(taskStatusCategory === "Active"){
+    renderActiveTasks();
+  } else if(taskStatusCategory === "Done"){
+    renderCompletedTasks();
+  } else {
+    console.error("An unknown error has occurred.");
+  }
+})
+
+
+// CLICK: task status buttons functionality
+tasksStatusButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    // remove the active class from the previous button
+    tasksStatusButtons.forEach(button => {
+      button.classList.remove("active-status-style");
+    })
+    // add active class to the pressed button
+    btn.classList.add("active-status-style");
+    // get the button text for filtering the tasks based on it
+    const taskStatus = String(btn.textContent.split(" ")[0]);
+    // render only the relevant tasks
+    if(taskStatus === "All"){
+      renderAllTasks();
+    } else if(taskStatus === "Active"){
+      renderActiveTasks();
+    } else if(taskStatus === "Done"){
+      renderCompletedTasks();
+    } else {
+      console.error("An error has occurred. Task status is invalid or something...")
+    }
+  })
 })
 
 
@@ -215,8 +307,7 @@ function deleteTask(id: number): void {
 
 
 // UI rendering
-function renderTasks(){
-
+function renderTasks(category?: string){
   if(todos.length === 0){
     noTasksContainer?.classList.remove("hidden");
   } else {
@@ -291,6 +382,188 @@ function renderTasks(){
   currentDate ? currentDate.textContent = getCurrentDate() : "Unknown error has occurred.";
 }
 
+function renderAllTasks(){
+  if(todos.length === 0){
+    noTasksContainer?.classList.remove("hidden");
+  } else {
+    noTasksContainer?.classList.add("hidden");
+  }
+
+
+  if(todoContainer){
+    todoContainer.innerHTML = "";
+  }
+
+  for(let i = 0; i < todos.length; i++){
+    const taskGroup = document.createElement("div");
+    taskGroup.classList.add("task-group");
+    taskGroup.id = `task-${todos[i].id}`;
+
+    const taskLeftGroup = document.createElement("div");
+    taskLeftGroup.classList.add("task-left-group");
+    const taskRightGroup = document.createElement("div");
+    taskRightGroup.classList.add("task-right-group");
+
+
+    const taskCheckbox = document.createElement("input");
+    taskCheckbox.type = "checkbox";
+    taskCheckbox.name = "task";
+    taskCheckbox.id = `task-checkbox-${todos[i].id}`;
+    taskCheckbox.checked = true ? todos[i].completed : false;
+
+    const taskLabel = document.createElement("label");
+    taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
+    taskLabel.textContent = `${todos[i].title}`;
+    if(todos[i].completed){
+      taskLabel.classList.add("completed-task");
+    } else {
+      taskLabel.classList.remove("completed-task");
+    }
+
+    taskLeftGroup.appendChild(taskCheckbox);
+    taskLeftGroup.appendChild(taskLabel);
+
+
+    const deleteTaskBtn = document.createElement("button");
+    deleteTaskBtn.classList.add("delete-btn");
+    const deleteBtnIcon = document.createElement("i");
+    deleteBtnIcon.classList.add("fa-solid", "fa-trash-can");
+    deleteTaskBtn.appendChild(deleteBtnIcon);
+
+    taskRightGroup.appendChild(deleteTaskBtn);
+
+    taskGroup.appendChild(taskLeftGroup);
+    taskGroup.appendChild(taskRightGroup);
+
+
+    todoContainer?.appendChild(taskGroup);
+  }
+}
+
+function renderActiveTasks(){
+  const countActive = todos.filter(todo => !todo.completed).length;
+
+  if(countActive === 0){
+    noTasksContainer?.classList.remove("hidden");
+  } else {
+    noTasksContainer?.classList.add("hidden");
+  }
+
+
+  if(todoContainer){
+    todoContainer.innerHTML = "";
+  }
+
+  for(let i = 0; i < todos.length; i++){
+    if(!todos[i].completed){
+      const taskGroup = document.createElement("div");
+      taskGroup.classList.add("task-group");
+      taskGroup.id = `task-${todos[i].id}`;
+
+      const taskLeftGroup = document.createElement("div");
+      taskLeftGroup.classList.add("task-left-group");
+      const taskRightGroup = document.createElement("div");
+      taskRightGroup.classList.add("task-right-group");
+
+
+      const taskCheckbox = document.createElement("input");
+      taskCheckbox.type = "checkbox";
+      taskCheckbox.name = "task";
+      taskCheckbox.id = `task-checkbox-${todos[i].id}`;
+      taskCheckbox.checked = true ? todos[i].completed : false;
+
+      const taskLabel = document.createElement("label");
+      taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
+      taskLabel.textContent = `${todos[i].title}`;
+      if(todos[i].completed){
+        taskLabel.classList.add("completed-task");
+      } else {
+        taskLabel.classList.remove("completed-task");
+      }
+
+      taskLeftGroup.appendChild(taskCheckbox);
+      taskLeftGroup.appendChild(taskLabel);
+
+
+      const deleteTaskBtn = document.createElement("button");
+      deleteTaskBtn.classList.add("delete-btn");
+      const deleteBtnIcon = document.createElement("i");
+      deleteBtnIcon.classList.add("fa-solid", "fa-trash-can");
+      deleteTaskBtn.appendChild(deleteBtnIcon);
+
+      taskRightGroup.appendChild(deleteTaskBtn);
+
+      taskGroup.appendChild(taskLeftGroup);
+      taskGroup.appendChild(taskRightGroup);
+
+
+      todoContainer?.appendChild(taskGroup);
+    }
+  }
+}
+
+function renderCompletedTasks(){
+  const countDone = todos.filter(todo => todo.completed).length;
+
+  if(countDone === 0){
+    noTasksContainer?.classList.remove("hidden");
+  } else {
+    noTasksContainer?.classList.add("hidden");
+  }
+
+
+  if(todoContainer){
+    todoContainer.innerHTML = "";
+  }
+
+  for(let i = 0; i < todos.length; i++){
+    if(todos[i].completed){
+      const taskGroup = document.createElement("div");
+      taskGroup.classList.add("task-group");
+      taskGroup.id = `task-${todos[i].id}`;
+
+      const taskLeftGroup = document.createElement("div");
+      taskLeftGroup.classList.add("task-left-group");
+      const taskRightGroup = document.createElement("div");
+      taskRightGroup.classList.add("task-right-group");
+
+
+      const taskCheckbox = document.createElement("input");
+      taskCheckbox.type = "checkbox";
+      taskCheckbox.name = "task";
+      taskCheckbox.id = `task-checkbox-${todos[i].id}`;
+      taskCheckbox.checked = true ? todos[i].completed : false;
+
+      const taskLabel = document.createElement("label");
+      taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
+      taskLabel.textContent = `${todos[i].title}`;
+      if(todos[i].completed){
+        taskLabel.classList.add("completed-task");
+      } else {
+        taskLabel.classList.remove("completed-task");
+      }
+
+      taskLeftGroup.appendChild(taskCheckbox);
+      taskLeftGroup.appendChild(taskLabel);
+
+
+      const deleteTaskBtn = document.createElement("button");
+      deleteTaskBtn.classList.add("delete-btn");
+      const deleteBtnIcon = document.createElement("i");
+      deleteBtnIcon.classList.add("fa-solid", "fa-trash-can");
+      deleteTaskBtn.appendChild(deleteBtnIcon);
+
+      taskRightGroup.appendChild(deleteTaskBtn);
+
+      taskGroup.appendChild(taskLeftGroup);
+      taskGroup.appendChild(taskRightGroup);
+
+
+      todoContainer?.appendChild(taskGroup);
+    }
+  }
+}
+
 
 
 
@@ -298,8 +571,8 @@ function renderTasks(){
 
 // Utility functions
 function getCurrentDate(): string {
-  const days: String[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const months: String[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const days: string[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months: string[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   const now = new Date();
   const day = now.getDay();
