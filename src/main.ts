@@ -1,19 +1,23 @@
 // DOM elements
 const currentDate = document.querySelector<HTMLElement>(".current-date");
 const inputTextField = document.querySelector<HTMLInputElement>(".input-text");
+const formContainer = document.querySelector<HTMLFormElement>(".form-container");
+const trashBinContainer = document.querySelector<HTMLDivElement>(".trash-bin-screen-container");
+const emptyTrashBinComponent = document.querySelector<HTMLDivElement>(".empty-trash-bin-body-container");
+const trashBinBodyContainer = document.querySelector<HTMLDivElement>(".trash-bin-container-body");
 
 const addTaskButton = document.querySelector<HTMLButtonElement>(".add-todo-btn");
 const clearCompletedTasksBtn = document.querySelector<HTMLButtonElement>(".clear-completed-tasks-btn");
 const tasksStatusButtons = document.querySelectorAll<HTMLButtonElement>("button.tasks-status-btn");
+const trashBinButton = document.querySelector<HTMLButtonElement>(".trash-bin-button");
+
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
-
 const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
 const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-container");
 
 
 // TODO: reduce redundancy and make one function instead of 3 for rendering tasks?
-// TODO: create a trash bin page where users can recover their deleted tasks
 
 
 interface Todo {
@@ -21,6 +25,7 @@ interface Todo {
   title: string;
   priority: string;
   completed: boolean;
+  deleted: boolean;
 }
 
 let todos: Todo[] = [];
@@ -222,7 +227,8 @@ addTaskButton?.addEventListener("click", () => {
     id: Date.now(),
     title: String(userInput),
     priority: String(taskPriority),
-    completed: false
+    completed: false,
+    deleted: false
   }
 
   todos.push(todoItem);
@@ -256,7 +262,11 @@ addTaskButton?.addEventListener("click", () => {
 
 // CLICK: clear completed tasks button
 clearCompletedTasksBtn?.addEventListener("click", () => {
-  todos = todos.filter(todo => todo.completed === false);
+  todos.forEach(todo => {
+    if(todo.completed){
+      todo.deleted = true;
+    }
+  })
   saveTasks();
   
 
@@ -305,6 +315,13 @@ tasksStatusButtons.forEach(btn => {
   })
 })
 
+// CLICK: trash bin button
+trashBinButton?.addEventListener("click", () => {
+  formContainer?.classList.add("hide-element");
+  trashBinContainer?.classList.remove("hide-element"); 
+  renderDeletedTasks();
+});
+
 
 
 
@@ -345,15 +362,33 @@ function editTask(id: number, title: string){
 }
 
 function deleteTask(id: number): void {
-  for(let i = 0; i < todos.length; i++){
-    if(todos[i].id === id){
-      todos.splice(i, 1);
-      break;
-    }
-  }
-
+  const task = todos.find((t) => t.id === id);
+  if (!task) return;
+  task.deleted = true;
   saveTasks();
 }
+
+function restoreTask(id: number): void {
+  const task = todos.find((t) => t.id === id);
+  if (!task) return;
+  task.deleted = false;
+  saveTasks();
+}
+
+function deletePermanently(id: number): void {
+  todos = todos.filter((t) => t.id !== id);
+  saveTasks();
+}
+
+function emptyTrash(): void {
+  todos = todos.filter((t) => !t.deleted);
+  saveTasks();
+}
+
+
+
+
+
 
 
 
@@ -363,10 +398,10 @@ function deleteTask(id: number): void {
 
 function renderUIData(){
   const activeTasks = todos.filter(todo => {
-      return !todo.completed;
-    });
+      return !todo.completed && !todo.deleted;
+    }).length;
 
-  const tasksCount: number = activeTasks.length;
+  const tasksCount: number = activeTasks;
 
   if(tasksCount !== 1){
     taskCount ? taskCount.textContent = `${String(tasksCount)} tasks left.` : "Unknown error has occurred.";
@@ -374,9 +409,9 @@ function renderUIData(){
     taskCount ? taskCount.textContent = `${String(tasksCount)} task left.` : "Unknown error has occurred.";
   }
 
-  const allTasksCount = todos.length;
-  const activeTasksCount = todos.filter(todo => !todo.completed).length;
-  const completedTasksCount = todos.filter(todo => todo.completed).length;
+  const allTasksCount = todos.filter(todo => !todo.deleted).length;
+  const activeTasksCount = todos.filter(todo => !todo.completed && !todo.deleted).length;
+  const completedTasksCount = todos.filter(todo => todo.completed && !todo.deleted).length;
 
   document.querySelector<HTMLSpanElement>(".all-tasks-count").textContent = String(allTasksCount);
   document.querySelector<HTMLSpanElement>(".active-tasks-count").textContent = String(activeTasksCount);
@@ -384,7 +419,9 @@ function renderUIData(){
 }
 
 function renderAllTasks(){
-  if(todos.length === 0){
+  const nonDeletedTasksCount = todos.filter(todo => !todo.deleted).length;
+
+  if(nonDeletedTasksCount === 0){
     noTasksContainer?.classList.remove("hidden");
   } else {
     noTasksContainer?.classList.add("hidden");
@@ -396,6 +433,8 @@ function renderAllTasks(){
   }
 
   for(let i = 0; i < todos.length; i++){
+    if(todos[i].deleted) continue;
+
     const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
     taskGroup.id = `task-${todos[i].id}`;
@@ -473,7 +512,7 @@ function renderAllTasks(){
 }
 
 function renderActiveTasks(){
-  const countActive = todos.filter(todo => !todo.completed).length;
+  const countActive = todos.filter(todo => !todo.completed && !todo.deleted).length;
 
   if(countActive === 0){
     noTasksContainer?.classList.remove("hidden");
@@ -487,6 +526,8 @@ function renderActiveTasks(){
   }
 
   for(let i = 0; i < todos.length; i++){
+    if(todos[i].deleted) continue;
+
     if(!todos[i].completed){
       const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
@@ -568,7 +609,7 @@ function renderActiveTasks(){
 }
 
 function renderCompletedTasks(){
-  const countDone = todos.filter(todo => todo.completed).length;
+  const countDone = todos.filter(todo => todo.completed && !todo.deleted).length;
 
   if(countDone === 0){
     noTasksContainer?.classList.remove("hidden");
@@ -582,6 +623,8 @@ function renderCompletedTasks(){
   }
 
   for(let i = 0; i < todos.length; i++){
+    if(todos[i].deleted) continue;
+
     if(todos[i].completed){
       const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
@@ -658,6 +701,58 @@ function renderCompletedTasks(){
 
 
     todoContainer?.appendChild(taskGroup);
+    }
+  }
+}
+
+function renderDeletedTasks(){
+  if(trashBinBodyContainer) {trashBinBodyContainer.innerHTML = ""};
+  const countDeleted = todos.filter(todo => todo.deleted).length;
+
+  if(countDeleted === 0){
+    emptyTrashBinComponent?.classList.remove("hide-element");
+  } else {
+    emptyTrashBinComponent?.classList.add("hide-element");
+  }
+
+
+  for(let todo of todos){
+    if(!todo.deleted) continue;
+
+    // just making sure :)
+    if(todo.deleted){
+      const deletedTaskGroup = document.createElement("div");
+      deletedTaskGroup.classList.add("deleted-task-group");
+      deletedTaskGroup.id = `task-${todo.id}`;
+
+      const deletedTaskLeftGroup = document.createElement("div");
+      deletedTaskLeftGroup.classList.add("deleted-task-left-group");
+      const deletedInputLabel = document.createElement("label");
+      deletedInputLabel.classList.add("deleted-input-label");
+      deletedInputLabel.textContent = `${todo.title}`;
+      deletedTaskLeftGroup.appendChild(deletedInputLabel);
+
+      const deletedTaskRightGroup = document.createElement("div");
+      deletedTaskRightGroup.classList.add("deleted-task-right-group");
+      const recoverTaskButton = document.createElement("button");
+      recoverTaskButton.classList.add("recover-task-button");
+      recoverTaskButton.type = "button";
+      recoverTaskButton.textContent = "Recover"
+      const leftArrowIcon = document.createElement("i");
+      leftArrowIcon.classList.add("fa", "fa-arrow-left-rotate");
+      recoverTaskButton.appendChild(leftArrowIcon);
+      const deleteTaskButton = document.createElement("button");
+      deleteTaskButton.classList.add("delete-task-button");
+      deleteTaskButton.type = "button";
+      deleteTaskButton.textContent = "Delete";
+      const warningIcon = document.createElement("i");
+      warningIcon.classList.add("fa", "fa-warning");
+      warningIcon.textContent = "Delete";
+      deletedTaskRightGroup.append(recoverTaskButton, deleteTaskButton);
+
+      deletedTaskGroup.append(deletedTaskLeftGroup, deletedTaskRightGroup);
+
+      trashBinBodyContainer?.appendChild(deletedTaskGroup);
     }
   }
 }

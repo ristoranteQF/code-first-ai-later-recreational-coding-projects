@@ -17,8 +17,8 @@
       <header class="header">
         <h1 class="title">My Tasks</h1>
         <div class="header-information">
-          <p class="current-date">Saturday, 7 November</p>
-          <p>Saved automatically</p>
+          <p class="current-date"></p>
+          <!-- <p>Saved automatically</p> -->
         </div>
       </header>
 
@@ -102,6 +102,50 @@
           <button type="button" class="clear-completed-tasks-btn">Clear completed</button>
         </div>
       </form>
+
+      <div class="trash-bin-screen-container hide-element">
+        <div class="trash-bin-container-header">
+          <button type="button" class="return-to-tasks-button"><i class="fa fa-arrow-left"></i> Go Back</button>
+
+          <div class="trash-bin-header-right">
+            <button type="button" class="recover-all-tasks-button"><i class="fa fa-arrow-rotate-left"></i> Recover All</button>
+            <button type="button" class="delete-all-tasks-button"><i class="fa fa-warning"></i> Delete All</button>
+          </div>
+        </div>
+
+        <div class="trash-bin-container-body">
+
+          <div class="empty-trash-bin-body-container hide-element">
+            <i class="fa fa-trash-can trash-bin-icon"></i>
+            <p class="trash-bin-description">The trash bin is empty!</p>
+          </div>
+
+          <!--  Hard coded items  -->
+
+          <!-- <div class="deleted-task-group" id="task-1">
+            <div class="deleted-task-left-group">
+              <label class="deleted-input-label">finish this project yad yad yad da</label>
+            </div>
+
+            <div class="deleted-task-right-group">
+              <button type="button" class="recover-task-button"><i class="fa fa-arrow-left"></i> Recover</button>
+              <button type="button" class="delete-task-button"><i class="fa fa-warning"></i> Delete</button>
+            </div>
+          </div>
+
+          <div class="deleted-task-group" id="task-2">
+            <div class="deleted-task-left-group">
+              <label class="deleted-input-label">do this and do that</label>
+            </div>
+
+            <div class="deleted-task-right-group">
+              <button type="button" class="recover-task-button"><i class="fa fa-arrow-left"></i> Recover</button>
+              <button type="button" class="delete-task-button"><i class="fa fa-warning"></i> Delete</button>
+            </div>
+          </div> -->
+
+        </div>
+      </div>
 
     </div>
 
