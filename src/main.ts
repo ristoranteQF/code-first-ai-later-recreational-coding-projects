@@ -11,6 +11,8 @@ const clearCompletedTasksBtn = document.querySelector<HTMLButtonElement>(".clear
 const tasksStatusButtons = document.querySelectorAll<HTMLButtonElement>("button.tasks-status-btn");
 const trashBinButton = document.querySelector<HTMLButtonElement>(".trash-bin-button");
 const quitTrashBinButton = document.querySelector<HTMLButtonElement>(".return-to-tasks-button");
+const recoverAllTasksButton = document.querySelector<HTMLButtonElement>(".recover-all-tasks-button");
+const deleteAllTasksButton = document.querySelector<HTMLButtonElement>(".delete-all-tasks-button");
 
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
@@ -18,7 +20,7 @@ const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
 const noTasksContainer = document.querySelector<HTMLDivElement>(".no-tasks-container");
 
 
-// TODO: reduce redundancy and make one function instead of 3 for rendering tasks?
+// TODO: reduce redundancy and/or improve your code
 
 
 interface Todo {
@@ -59,22 +61,7 @@ todoContainer?.addEventListener("change", e => {
   saveTasks();
   
   // render the freshly updated data based on which status category is present on the UI
-  let taskStatusCategory: string = "";
-  tasksStatusButtons.forEach(btn => {
-    if(btn.classList.contains("active-status-style")){
-      taskStatusCategory = btn.textContent.split(" ")[0];
-    }
-  })
-
-  if(taskStatusCategory === "All"){
-    renderAllTasks();
-  } else if(taskStatusCategory === "Active"){
-    renderActiveTasks();
-  } else if(taskStatusCategory === "Done"){
-    renderCompletedTasks();
-  } else {
-    console.error("An unknown error has occurred.");
-  }
+  renderTasks();
 
   renderUIData();
 });
@@ -95,22 +82,7 @@ todoContainer?.addEventListener("click", e => {
   deleteTask(taskId);
   
   // render the UI based on which status category button has the .active-status-style
-  let taskStatusCategory: string = "";
-  tasksStatusButtons.forEach(btn => {
-    if(btn.classList.contains("active-status-style")){
-      taskStatusCategory = btn.textContent.split(" ")[0];
-    }
-  })
-
-  if(taskStatusCategory === "All"){
-    renderAllTasks();
-  } else if(taskStatusCategory === "Active"){
-    renderActiveTasks();
-  } else if(taskStatusCategory === "Done"){
-    renderCompletedTasks();
-  } else {
-    console.error("An unknown error has occurred.");
-  }
+  renderTasks();
 
   renderUIData();
 });
@@ -241,22 +213,7 @@ addTaskButton?.addEventListener("click", () => {
   }
 
   // render the freshly updated data based on which status category is present on the UI
-  let taskStatusCategory: string = "";
-  tasksStatusButtons.forEach(btn => {
-    if(btn.classList.contains("active-status-style")){
-      taskStatusCategory = btn.textContent.split(" ")[0];
-    }
-  })
-
-  if(taskStatusCategory === "All"){
-    renderAllTasks();
-  } else if(taskStatusCategory === "Active"){
-    renderActiveTasks();
-  } else if(taskStatusCategory === "Done"){
-    renderCompletedTasks();
-  } else {
-    console.error("An unknown error has occurred.");
-  }
+  renderTasks();
 
   renderUIData();
 });
@@ -269,25 +226,9 @@ clearCompletedTasksBtn?.addEventListener("click", () => {
     }
   })
   saveTasks();
-  
 
   // render the freshly updated data based on which status category is present on the UI
-  let taskStatusCategory: string = "";
-  tasksStatusButtons.forEach(btn => {
-    if(btn.classList.contains("active-status-style")){
-      taskStatusCategory = btn.textContent.split(" ")[0];
-    }
-  })
-
-  if(taskStatusCategory === "All"){
-    renderAllTasks();
-  } else if(taskStatusCategory === "Active"){
-    renderActiveTasks();
-  } else if(taskStatusCategory === "Done"){
-    renderCompletedTasks();
-  } else {
-    console.error("An unknown error has occurred.");
-  }
+  renderTasks();
 
   renderUIData();
 })
@@ -304,15 +245,7 @@ tasksStatusButtons.forEach(btn => {
     // get the button text for filtering the tasks based on it
     const taskStatus = String(btn.textContent.split(" ")[0]);
     // render only the relevant tasks
-    if(taskStatus === "All"){
-      renderAllTasks();
-    } else if(taskStatus === "Active"){
-      renderActiveTasks();
-    } else if(taskStatus === "Done"){
-      renderCompletedTasks();
-    } else {
-      console.error("An error has occurred. Task status is invalid or something...")
-    }
+    renderTasks(taskStatus);
   })
 })
 
@@ -326,13 +259,63 @@ trashBinButton?.addEventListener("click", () => {
 
 // CLICK: quit trash bin button
 quitTrashBinButton?.addEventListener("click", () => {
-  console.log("working");
-
   trashBinContainer?.classList.add("hide-element");
   formContainer?.classList.remove("hide-element");
+
+
+  renderUIData();
+
+  // render the freshly updated data based on which status category is present on the UI
+  renderTasks();
 })
 
 
+// CLICK: recover all tasks button
+recoverAllTasksButton?.addEventListener("click", () => {
+  restoreAllTasks();
+  renderDeletedTasks();
+})
+
+
+// CLICK: delete all tasks button
+deleteAllTasksButton?.addEventListener("click", () => {
+  emptyTrash();
+  renderDeletedTasks();
+})
+
+
+// CLICK: recover task button
+trashBinBodyContainer?.addEventListener("click", e => {
+  const target = e.target;
+  if(!(target instanceof Element)) return;
+
+  const recoverButton = target.closest(".recover-task-button");
+  if(!recoverButton) return;
+
+  const deletedTaskGroup = recoverButton.closest(".deleted-task-group");
+  if(!deletedTaskGroup) return;
+  const taskId = Number(deletedTaskGroup.id.split("-")[1]);
+
+  restoreTask(taskId);
+  renderDeletedTasks();
+})
+
+
+// CLICK: permanently delete task button
+trashBinBodyContainer?.addEventListener("click", e => {
+  const target = e.target;
+  if(!(target instanceof Element)) return;
+  
+  const deleteButton = target.closest(".delete-task-button");
+  if(!deleteButton) return;
+
+  const deletedTaskGroup = deleteButton.closest(".deleted-task-group");
+  if(!deletedTaskGroup) return;
+  const taskId = Number(deletedTaskGroup.id.split("-")[1]);
+
+  deletePermanently(taskId);
+  renderDeletedTasks();
+})
 
 
 
@@ -385,6 +368,16 @@ function restoreTask(id: number): void {
   saveTasks();
 }
 
+function restoreAllTasks(){
+  if(!todos) return;
+  todos.forEach(todo => {
+    if(todo.deleted){
+      todo.deleted = false;
+    }
+  })
+  saveTasks();
+}
+
 function deletePermanently(id: number): void {
   todos = todos.filter((t) => t.id !== id);
   saveTasks();
@@ -423,6 +416,7 @@ function renderUIData(){
   const activeTasksCount = todos.filter(todo => !todo.completed && !todo.deleted).length;
   const completedTasksCount = todos.filter(todo => todo.completed && !todo.deleted).length;
 
+  
   document.querySelector<HTMLSpanElement>(".all-tasks-count").textContent = String(allTasksCount);
   document.querySelector<HTMLSpanElement>(".active-tasks-count").textContent = String(activeTasksCount);
   document.querySelector<HTMLSpanElement>(".done-tasks-count").textContent = String(completedTasksCount);
@@ -716,8 +710,11 @@ function renderCompletedTasks(){
 }
 
 function renderDeletedTasks(){
-  if(trashBinBodyContainer) {trashBinBodyContainer.innerHTML = ""};
-  const countDeleted = todos.filter(todo => todo.deleted).length;
+  trashBinBodyContainer
+    ?.querySelectorAll(".deleted-task-group")
+    .forEach(el => el.remove());
+
+  const countDeleted = todos.filter(todo => todo.deleted).length || 0;
 
   if(countDeleted === 0){
     emptyTrashBinComponent?.classList.remove("hide-element");
@@ -757,13 +754,35 @@ function renderDeletedTasks(){
       deleteTaskButton.textContent = "Delete";
       const warningIcon = document.createElement("i");
       warningIcon.classList.add("fa", "fa-warning");
-      warningIcon.textContent = "Delete";
+      deleteTaskButton.prepend(warningIcon);
       deletedTaskRightGroup.append(recoverTaskButton, deleteTaskButton);
 
       deletedTaskGroup.append(deletedTaskLeftGroup, deletedTaskRightGroup);
 
       trashBinBodyContainer?.appendChild(deletedTaskGroup);
     }
+  }
+}
+
+ // render the data based on which status category is present on the UI
+function renderTasks(category?: string){
+  category?.trim();
+  if(!category || category === ""){
+    tasksStatusButtons.forEach(btn => {
+    if(btn.classList.contains("active-status-style")){
+      category = btn.textContent.split(" ")[0];
+    }
+  })
+  }
+
+  if(category === "All"){
+    renderAllTasks();
+  } else if(category === "Active"){
+    renderActiveTasks();
+  } else if(category === "Done"){
+    renderCompletedTasks();
+  } else {
+    console.error("An unknown error has occurred.");
   }
 }
 
