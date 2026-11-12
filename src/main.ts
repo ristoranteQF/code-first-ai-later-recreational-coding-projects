@@ -10,6 +10,7 @@ const addTaskButton = document.querySelector<HTMLButtonElement>(".add-todo-btn")
 const clearCompletedTasksBtn = document.querySelector<HTMLButtonElement>(".clear-completed-tasks-btn");
 const tasksStatusButtons = document.querySelectorAll<HTMLButtonElement>("button.tasks-status-btn");
 const trashBinButton = document.querySelector<HTMLButtonElement>(".trash-bin-button");
+const quitTrashBinButton = document.querySelector<HTMLButtonElement>(".return-to-tasks-button");
 
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
@@ -321,6 +322,15 @@ trashBinButton?.addEventListener("click", () => {
   trashBinContainer?.classList.remove("hide-element"); 
   renderDeletedTasks();
 });
+
+
+// CLICK: quit trash bin button
+quitTrashBinButton?.addEventListener("click", () => {
+  console.log("working");
+
+  trashBinContainer?.classList.add("hide-element");
+  formContainer?.classList.remove("hide-element");
+})
 
 
 
