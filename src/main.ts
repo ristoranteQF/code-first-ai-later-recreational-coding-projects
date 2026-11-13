@@ -469,6 +469,8 @@ function renderUIData() {
     doneTasksCountSpan.textContent = String(completedTasksCount);
 }
 
+
+
 function renderAllTasks() {
   const nonDeletedTasksCount = todos.filter((todo) => !todo.deleted).length;
 
@@ -485,75 +487,8 @@ function renderAllTasks() {
   for (let i = 0; i < todos.length; i++) {
     if (todos[i].deleted) continue;
 
-    const taskGroup = document.createElement("div");
-    taskGroup.classList.add("task-group");
-    taskGroup.id = `task-${todos[i].id}`;
-
-    const taskLeftGroup = document.createElement("div");
-    taskLeftGroup.classList.add("task-left-group");
-    const taskRightGroup = document.createElement("div");
-    taskRightGroup.classList.add("task-right-group");
-
-    const taskCheckbox = document.createElement("input");
-    taskCheckbox.type = "checkbox";
-    taskCheckbox.name = "task";
-    taskCheckbox.id = `task-checkbox-${todos[i].id}`;
-    taskCheckbox.checked = todos[i].completed;
-    const taskLabel = document.createElement("label");
-    taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
-    taskLabel.textContent = `${todos[i].title}`;
-    taskLabel.classList.add("input-label");
-    if (todos[i].completed) {
-      taskLabel.classList.add("completed-task");
-    }
-    const editInput = document.createElement("input");
-    editInput.type = "text";
-    editInput.classList.add("edit-input");
-    editInput.setAttribute("hidden", "");
-
-    taskLeftGroup.append(taskCheckbox, taskLabel, editInput);
-
-    const taskRightGroupContainer = document.createElement("div");
-    taskRightGroupContainer.classList.add("task-right-group-container");
-    const priorityElement = document.createElement("span");
-    priorityElement.classList.add("priority-element");
-    const priorityElementType = todos[i].priority.toLowerCase();
-    priorityElement.classList.add(
-      `priority-element-${priorityElementType}-styles`,
-    );
-    priorityElement.textContent = todos[i].priority;
-    const editButton = document.createElement("button");
-    editButton.type = "button";
-    editButton.classList.add("edit-btn");
-    const editIcon = document.createElement("i");
-    editIcon.classList.add("fa-solid", "fa-edit");
-    editButton.appendChild(editIcon);
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.classList.add("delete-btn");
-    const deleteIcon = document.createElement("i");
-    deleteIcon.classList.add("fa-solid", "fa-trash-can");
-    deleteButton.appendChild(deleteIcon);
-    taskRightGroupContainer.append(priorityElement, editButton, deleteButton);
-
-    const taskRightGroupEditContainer = document.createElement("div");
-    taskRightGroupEditContainer.classList.add(
-      "task-right-group-edit-container",
-      "hide-element",
-    );
-    const editSaveButton = document.createElement("button");
-    editSaveButton.type = "button";
-    editSaveButton.classList.add("edit-save-btn");
-    editSaveButton.textContent = "Save";
-    const editCancelButton = document.createElement("button");
-    editCancelButton.type = "button";
-    editCancelButton.textContent = "Cancel";
-    editCancelButton.classList.add("edit-cancel-btn");
-    taskRightGroupEditContainer.append(editSaveButton, editCancelButton);
-
-    taskRightGroup.append(taskRightGroupContainer, taskRightGroupEditContainer);
-    taskGroup.append(taskLeftGroup, taskRightGroup);
-
+    const taskGroup = createTaskElement(todos[i]);
+    
     todoContainer?.appendChild(taskGroup);
   }
 }
@@ -577,76 +512,7 @@ function renderActiveTasks() {
     if (todos[i].deleted) continue;
 
     if (!todos[i].completed) {
-      const taskGroup = document.createElement("div");
-      taskGroup.classList.add("task-group");
-      taskGroup.id = `task-${todos[i].id}`;
-
-      const taskLeftGroup = document.createElement("div");
-      taskLeftGroup.classList.add("task-left-group");
-      const taskRightGroup = document.createElement("div");
-      taskRightGroup.classList.add("task-right-group");
-
-      const taskCheckbox = document.createElement("input");
-      taskCheckbox.type = "checkbox";
-      taskCheckbox.name = "task";
-      taskCheckbox.id = `task-checkbox-${todos[i].id}`;
-      taskCheckbox.checked = todos[i].completed;
-
-      const taskLabel = document.createElement("label");
-      taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
-      taskLabel.textContent = `${todos[i].title}`;
-      taskLabel.classList.add("input-label");
-
-      const editInput = document.createElement("input");
-      editInput.type = "text";
-      editInput.classList.add("edit-input");
-      editInput.setAttribute("hidden", "");
-
-      taskLeftGroup.append(taskCheckbox, taskLabel, editInput);
-
-      const taskRightGroupContainer = document.createElement("div");
-      taskRightGroupContainer.classList.add("task-right-group-container");
-      const priorityElement = document.createElement("span");
-      priorityElement.classList.add("priority-element");
-      const priorityElementType = todos[i].priority.toLowerCase();
-      priorityElement.classList.add(
-        `priority-element-${priorityElementType}-styles`,
-      );
-      priorityElement.textContent = todos[i].priority;
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.classList.add("edit-btn");
-      const editIcon = document.createElement("i");
-      editIcon.classList.add("fa-solid", "fa-edit");
-      editButton.appendChild(editIcon);
-      const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.classList.add("delete-btn");
-      const deleteIcon = document.createElement("i");
-      deleteIcon.classList.add("fa-solid", "fa-trash-can");
-      deleteButton.appendChild(deleteIcon);
-      taskRightGroupContainer.append(priorityElement, editButton, deleteButton);
-
-      const taskRightGroupEditContainer = document.createElement("div");
-      taskRightGroupEditContainer.classList.add(
-        "task-right-group-edit-container",
-        "hide-element",
-      );
-      const editSaveButton = document.createElement("button");
-      editSaveButton.type = "button";
-      editSaveButton.classList.add("edit-save-btn");
-      editSaveButton.textContent = "Save";
-      const editCancelButton = document.createElement("button");
-      editCancelButton.type = "button";
-      editCancelButton.classList.add("edit-cancel-btn");
-      editCancelButton.textContent = "Cancel";
-      taskRightGroupEditContainer.append(editSaveButton, editCancelButton);
-
-      taskRightGroup.append(
-        taskRightGroupContainer,
-        taskRightGroupEditContainer,
-      );
-      taskGroup.append(taskLeftGroup, taskRightGroup);
+      const taskGroup = createTaskElement(todos[i]);
 
       todoContainer?.appendChild(taskGroup);
     }
@@ -672,82 +538,33 @@ function renderCompletedTasks() {
     if (todos[i].deleted) continue;
 
     if (todos[i].completed) {
-      const taskGroup = document.createElement("div");
-      taskGroup.classList.add("task-group");
-      taskGroup.id = `task-${todos[i].id}`;
-
-      const taskLeftGroup = document.createElement("div");
-      taskLeftGroup.classList.add("task-left-group");
-      const taskRightGroup = document.createElement("div");
-      taskRightGroup.classList.add("task-right-group");
-
-      const taskCheckbox = document.createElement("input");
-      taskCheckbox.type = "checkbox";
-      taskCheckbox.name = "task";
-      taskCheckbox.id = `task-checkbox-${todos[i].id}`;
-      taskCheckbox.checked = todos[i].completed;
-
-      const taskLabel = document.createElement("label");
-      taskLabel.htmlFor = `task-checkbox-${todos[i].id}`;
-      taskLabel.textContent = `${todos[i].title}`;
-      taskLabel.classList.add("input-label");
-      taskLabel.classList.add("completed-task");
-
-      const editInput = document.createElement("input");
-      editInput.type = "text";
-      editInput.classList.add("edit-input");
-      editInput.setAttribute("hidden", "");
-
-      taskLeftGroup.append(taskCheckbox, taskLabel, editInput);
-
-      const taskRightGroupContainer = document.createElement("div");
-      taskRightGroupContainer.classList.add("task-right-group-container");
-      const priorityElement = document.createElement("span");
-      priorityElement.classList.add("priority-element");
-      const priorityElementType = todos[i].priority.toLowerCase();
-      priorityElement.classList.add(
-        `priority-element-${priorityElementType}-styles`,
-      );
-      priorityElement.textContent = todos[i].priority;
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.classList.add("edit-btn");
-      const editIcon = document.createElement("i");
-      editIcon.classList.add("fa-solid", "fa-edit");
-      editButton.appendChild(editIcon);
-      const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.classList.add("delete-btn");
-      const deleteIcon = document.createElement("i");
-      deleteIcon.classList.add("fa-solid", "fa-trash-can");
-      deleteButton.appendChild(deleteIcon);
-      taskRightGroupContainer.append(priorityElement, editButton, deleteButton);
-
-      const taskRightGroupEditContainer = document.createElement("div");
-      taskRightGroupEditContainer.classList.add(
-        "task-right-group-edit-container",
-        "hide-element",
-      );
-      const editSaveButton = document.createElement("button");
-      editSaveButton.type = "button";
-      editSaveButton.classList.add("edit-save-btn");
-      editSaveButton.textContent = "Save";
-      const editCancelButton = document.createElement("button");
-      editCancelButton.type = "button";
-      editCancelButton.classList.add("edit-cancel-btn");
-      editCancelButton.textContent = "Cancel";
-      taskRightGroupEditContainer.append(editSaveButton, editCancelButton);
-
-      taskRightGroup.append(
-        taskRightGroupContainer,
-        taskRightGroupEditContainer,
-      );
-      taskGroup.append(taskLeftGroup, taskRightGroup);
+      const taskGroup = createTaskElement(todos[i]);
 
       todoContainer?.appendChild(taskGroup);
     }
   }
 }
+
+// render the data based on which filter category is present on the UI
+function renderTasks(category?: Filter) {
+  if (!category) {
+    tasksStatusButtons.forEach((btn) => {
+      if (btn.classList.contains("active-status-style")) {
+        const filterCategory = btn.textContent.split(" ")[0]
+        category = isFilter(filterCategory) ? filterCategory : "All";
+      }
+    });
+  }
+
+  if (category === "All") {
+    renderAllTasks();
+  } else if (category === "Active") {
+    renderActiveTasks();
+  } else if (category === "Done") {
+    renderCompletedTasks();
+  }
+}
+
 
 function renderDeletedTasks() {
   trashBinBodyContainer
@@ -803,25 +620,84 @@ function renderDeletedTasks() {
   }
 }
 
-// render the data based on which status category is present on the UI
-function renderTasks(category?: Filter) {
-  if (!category) {
-    tasksStatusButtons.forEach((btn) => {
-      if (btn.classList.contains("active-status-style")) {
-        const filterCategory = btn.textContent.split(" ")[0]
-        category = isFilter(filterCategory) ? filterCategory : "All";
-      }
-    });
-  }
 
-  if (category === "All") {
-    renderAllTasks();
-  } else if (category === "Active") {
-    renderActiveTasks();
-  } else if (category === "Done") {
-    renderCompletedTasks();
-  }
+function createTaskElement(todo: Todo) {
+  
+    const taskGroup = document.createElement("div");
+    taskGroup.classList.add("task-group");
+    taskGroup.id = `task-${todo.id}`;
+
+    const taskLeftGroup = document.createElement("div");
+    taskLeftGroup.classList.add("task-left-group");
+    const taskRightGroup = document.createElement("div");
+    taskRightGroup.classList.add("task-right-group");
+
+    const taskCheckbox = document.createElement("input");
+    taskCheckbox.type = "checkbox";
+    taskCheckbox.name = "task";
+    taskCheckbox.id = `task-checkbox-${todo.id}`;
+    taskCheckbox.checked = todo.completed;
+    const taskLabel = document.createElement("label");
+    taskLabel.htmlFor = `task-checkbox-${todo.id}`;
+    taskLabel.textContent = `${todo.title}`;
+    taskLabel.classList.add("input-label");
+    if (todo.completed) {
+      taskLabel.classList.add("completed-task");
+    }
+    const editInput = document.createElement("input");
+    editInput.type = "text";
+    editInput.classList.add("edit-input");
+    editInput.setAttribute("hidden", "");
+
+    taskLeftGroup.append(taskCheckbox, taskLabel, editInput);
+
+    const taskRightGroupContainer = document.createElement("div");
+    taskRightGroupContainer.classList.add("task-right-group-container");
+    const priorityElement = document.createElement("span");
+    priorityElement.classList.add("priority-element");
+    const priorityElementType = todo.priority.toLowerCase();
+    priorityElement.classList.add(
+      `priority-element-${priorityElementType}-styles`,
+    );
+    priorityElement.textContent = todo.priority;
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.classList.add("edit-btn");
+    const editIcon = document.createElement("i");
+    editIcon.classList.add("fa-solid", "fa-edit");
+    editButton.appendChild(editIcon);
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.classList.add("delete-btn");
+    const deleteIcon = document.createElement("i");
+    deleteIcon.classList.add("fa-solid", "fa-trash-can");
+    deleteButton.appendChild(deleteIcon);
+    taskRightGroupContainer.append(priorityElement, editButton, deleteButton);
+
+    const taskRightGroupEditContainer = document.createElement("div");
+    taskRightGroupEditContainer.classList.add(
+      "task-right-group-edit-container",
+      "hide-element",
+    );
+    const editSaveButton = document.createElement("button");
+    editSaveButton.type = "button";
+    editSaveButton.classList.add("edit-save-btn");
+    editSaveButton.textContent = "Save";
+    const editCancelButton = document.createElement("button");
+    editCancelButton.type = "button";
+    editCancelButton.textContent = "Cancel";
+    editCancelButton.classList.add("edit-cancel-btn");
+    taskRightGroupEditContainer.append(editSaveButton, editCancelButton);
+
+    taskRightGroup.append(taskRightGroupContainer, taskRightGroupEditContainer);
+    taskGroup.append(taskLeftGroup, taskRightGroup);
+
+
+    return taskGroup;
 }
+
+
+
 
 // Utility functions
 function getCurrentDate(): string {
