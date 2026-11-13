@@ -47,12 +47,15 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(
   ".no-tasks-container",
 );
 
-// TODO: reduce redundancy and/or improve your code
+
+
+type Priority = "High" | "Medium" | "Low";
+type Filter = "All" | "Active" | "Done";
 
 interface Todo {
   id: number;
   title: string;
-  priority: string;
+  priority: Priority;
   completed: boolean;
   deleted: boolean;
 }
@@ -242,13 +245,14 @@ addTaskButton?.addEventListener("click", () => {
     return;
   }
 
-  const taskPriority = priorityElement?.value;
+  const selectedPriority = priorityElement?.value;
+  const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
   // create a Todo object and push it to the todos global array
   const todoItem: Todo = {
     id: Date.now(),
-    title: String(userInput),
-    priority: String(taskPriority),
+    title: userInput,
+    priority: taskPriority,
     completed: false,
     deleted: false,
   };
@@ -292,9 +296,10 @@ tasksStatusButtons.forEach((btn) => {
     // add active class to the pressed button
     btn.classList.add("active-status-style");
     // get the button text for filtering the tasks based on it
-    const taskStatus = String(btn.textContent.split(" ")[0]);
+    const taskStatus = btn.textContent.split(" ")[0];
+    const taskFilterCategory: Filter = isFilter(taskStatus) ? taskStatus : "All";
     // render only the relevant tasks
-    renderTasks(taskStatus);
+    renderTasks(taskFilterCategory);
   });
 });
 
@@ -360,6 +365,9 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
   renderDeletedTasks();
 });
 
+
+
+
 // localstorage CRUD API
 
 function loadTasks(): Todo[] {
@@ -419,6 +427,9 @@ function emptyTrash(): void {
   todos = todos.filter((t) => !t.deleted);
   saveTasks();
 }
+
+
+
 
 // UI rendering
 
@@ -793,11 +804,12 @@ function renderDeletedTasks() {
 }
 
 // render the data based on which status category is present on the UI
-function renderTasks(category?: string) {
-  if (!category || category === "") {
+function renderTasks(category?: Filter) {
+  if (!category) {
     tasksStatusButtons.forEach((btn) => {
       if (btn.classList.contains("active-status-style")) {
-        category = btn.textContent.split(" ")[0];
+        const filterCategory = btn.textContent.split(" ")[0]
+        category = isFilter(filterCategory) ? filterCategory : "All";
       }
     });
   }
@@ -808,8 +820,6 @@ function renderTasks(category?: string) {
     renderActiveTasks();
   } else if (category === "Done") {
     renderCompletedTasks();
-  } else {
-    console.error("An unknown error has occurred.");
   }
 }
 
@@ -846,4 +856,16 @@ function getCurrentDate(): string {
 
   const formattedDate = `${days[day]}, ${date} ${months[month]}`;
   return formattedDate;
+}
+
+
+
+
+// Type guards
+function isPriority(value: unknown): value is Priority {
+  return value === "High" || value == "Medium" || value === "Low";
+}
+
+function isFilter(value: unknown): value is Filter {
+  return value === "All" || value === "Active" || value === "Done";
 }
