@@ -64,7 +64,7 @@ let todos: Todo[] = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   todos = loadTasks();
-  renderAllTasks();
+  renderTasks();
   renderUIData();
   // render current present date
   if (currentDate) {
@@ -469,83 +469,7 @@ function renderUIData() {
     doneTasksCountSpan.textContent = String(completedTasksCount);
 }
 
-
-
-function renderAllTasks() {
-  const nonDeletedTasksCount = todos.filter((todo) => !todo.deleted).length;
-
-  if (nonDeletedTasksCount === 0) {
-    noTasksContainer?.classList.remove("hidden");
-  } else {
-    noTasksContainer?.classList.add("hidden");
-  }
-
-  if (todoContainer) {
-    todoContainer.innerHTML = "";
-  }
-
-  for (let i = 0; i < todos.length; i++) {
-    if (todos[i].deleted) continue;
-
-    const taskGroup = createTaskElement(todos[i]);
-    
-    todoContainer?.appendChild(taskGroup);
-  }
-}
-
-function renderActiveTasks() {
-  const countActive = todos.filter(
-    (todo) => !todo.completed && !todo.deleted,
-  ).length;
-
-  if (countActive === 0) {
-    noTasksContainer?.classList.remove("hidden");
-  } else {
-    noTasksContainer?.classList.add("hidden");
-  }
-
-  if (todoContainer) {
-    todoContainer.innerHTML = "";
-  }
-
-  for (let i = 0; i < todos.length; i++) {
-    if (todos[i].deleted) continue;
-
-    if (!todos[i].completed) {
-      const taskGroup = createTaskElement(todos[i]);
-
-      todoContainer?.appendChild(taskGroup);
-    }
-  }
-}
-
-function renderCompletedTasks() {
-  const countDone = todos.filter(
-    (todo) => todo.completed && !todo.deleted,
-  ).length;
-
-  if (countDone === 0) {
-    noTasksContainer?.classList.remove("hidden");
-  } else {
-    noTasksContainer?.classList.add("hidden");
-  }
-
-  if (todoContainer) {
-    todoContainer.innerHTML = "";
-  }
-
-  for (let i = 0; i < todos.length; i++) {
-    if (todos[i].deleted) continue;
-
-    if (todos[i].completed) {
-      const taskGroup = createTaskElement(todos[i]);
-
-      todoContainer?.appendChild(taskGroup);
-    }
-  }
-}
-
-// render the data based on which filter category is present on the UI
+// render the data based on which filter category is present
 function renderTasks(category?: Filter) {
   if (!category) {
     tasksStatusButtons.forEach((btn) => {
@@ -556,15 +480,30 @@ function renderTasks(category?: Filter) {
     });
   }
 
-  if (category === "All") {
-    renderAllTasks();
-  } else if (category === "Active") {
-    renderActiveTasks();
-  } else if (category === "Done") {
-    renderCompletedTasks();
-  }
-}
+  // just in case :)
+  const activeCategory = category || "All";
 
+  // get only the todos we need
+  const filteredTodos = filterTodos(todos, activeCategory);
+
+  // handle the empty state container
+  if (filteredTodos.length === 0) {
+    noTasksContainer?.classList.remove("hidden");
+  } else {
+    noTasksContainer?.classList.add("hidden");
+  }
+
+
+  if(todoContainer){
+    todoContainer.innerHTML = "";
+  }
+
+  // loop through the filtered list, build each element and append it.
+  filteredTodos.forEach(todo => {
+    const taskGroup = createTaskElement(todo);
+    todoContainer?.appendChild(taskGroup);
+  });
+}
 
 function renderDeletedTasks() {
   trashBinBodyContainer
@@ -621,6 +560,17 @@ function renderDeletedTasks() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+// DOM builder functions
 function createTaskElement(todo: Todo) {
   
     const taskGroup = document.createElement("div");
@@ -699,7 +649,9 @@ function createTaskElement(todo: Todo) {
 
 
 
-// Utility functions
+
+
+// Data / Utility functions
 function getCurrentDate(): string {
   const days: string[] = [
     "Sunday",
@@ -732,6 +684,20 @@ function getCurrentDate(): string {
 
   const formattedDate = `${days[day]}, ${date} ${months[month]}`;
   return formattedDate;
+}
+
+function filterTodos(todos: Todo[], currentFilter: Filter){
+  const filteredTodos = todos.filter(todo => {
+    if(todo.deleted) return false;
+
+    if(currentFilter === "Active") return !todo.completed;
+    if(currentFilter === "Done") return todo.completed;
+
+    // if it's all, keep the todo
+    return true;
+  });
+
+  return filteredTodos;
 }
 
 
