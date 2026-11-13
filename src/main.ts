@@ -14,6 +14,9 @@ const quitTrashBinButton = document.querySelector<HTMLButtonElement>(".return-to
 const recoverAllTasksButton = document.querySelector<HTMLButtonElement>(".recover-all-tasks-button");
 const deleteAllTasksButton = document.querySelector<HTMLButtonElement>(".delete-all-tasks-button");
 
+const allTasksCountSpan = document.querySelector<HTMLSpanElement>(".all-tasks-count");
+const activeTasksCountSpan = document.querySelector<HTMLSpanElement>(".active-tasks-count");
+const doneTasksCountSpan = document.querySelector<HTMLSpanElement>(".done-tasks-count");
 const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
 const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
 const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
@@ -417,9 +420,9 @@ function renderUIData(){
   const completedTasksCount = todos.filter(todo => todo.completed && !todo.deleted).length;
 
   
-  document.querySelector<HTMLSpanElement>(".all-tasks-count").textContent = String(allTasksCount);
-  document.querySelector<HTMLSpanElement>(".active-tasks-count").textContent = String(activeTasksCount);
-  document.querySelector<HTMLSpanElement>(".done-tasks-count").textContent = String(completedTasksCount);
+  if(allTasksCountSpan) allTasksCountSpan.textContent = String(allTasksCount);
+  if(activeTasksCountSpan) activeTasksCountSpan.textContent = String(activeTasksCount);
+  if(doneTasksCountSpan) doneTasksCountSpan.textContent = String(completedTasksCount);
 }
 
 function renderAllTasks(){
