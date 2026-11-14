@@ -51,7 +51,7 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(
 
 type Priority = "High" | "Medium" | "Low";
 type Filter = "All" | "Active" | "Done";
-// type CurrentScreen = "Main" | "Trash";
+type Screen = "Main" | "Trash";
 
 interface Todo {
   id: number;
@@ -64,12 +64,12 @@ interface Todo {
 let todos: Todo[] = [];
 let currentFilter: Filter = "All";
 const editingStateTasksIds: Set<number> = new Set();
+let currentScreen: Screen = "Main";
 
 
 document.addEventListener("DOMContentLoaded", () => {
   todos = loadTasks();
-  renderTasks();
-  renderUIData();
+  render();
   // render current present date
   if (currentDate) {
     currentDate.textContent = getCurrentDate();
@@ -96,10 +96,7 @@ todoContainer?.addEventListener("change", (e) => {
 
   saveTasks();
 
-  // render the freshly updated data based on which status category is present on the UI
-  renderTasks();
-
-  renderUIData();
+  render();
 });
 
 // CLICK: delete button
@@ -118,10 +115,7 @@ todoContainer?.addEventListener("click", (e) => {
   deleteTask(taskId);
   editingStateTasksIds.delete(taskId);
 
-  // render the UI based on which status category button has the .active-status-style
-  renderTasks();
-
-  renderUIData();
+  render();
 });
 
 // CLICK: edit task button
@@ -137,9 +131,7 @@ todoContainer?.addEventListener("click", (e) => {
   const taskId = Number(taskGroup.id.split("-")[1]);
   editingStateTasksIds.add(taskId);
 
-  console.log(taskId);
-  console.log(editingStateTasksIds);
-  renderTasks();
+  render();
 });
 
 // CLICK: save task button - edit functionality
@@ -164,7 +156,7 @@ todoContainer?.addEventListener("click", (e) => {
 
   editTask(taskId, newText);
   editingStateTasksIds.delete(taskId);
-  renderTasks();
+  render();
 });
 
 // CLICK: cancel editing task button
@@ -179,7 +171,7 @@ todoContainer?.addEventListener("click", (e) => {
 
   const taskId = Number(taskGroup.id.split("-")[1]);
   editingStateTasksIds.delete(taskId);
-  renderTasks();
+  render();
 });
 
 // CLICK: add task button
@@ -211,10 +203,7 @@ addTaskButton?.addEventListener("click", () => {
     inputTextField.value = "";
   }
 
-  // render the freshly updated data based on which status category is present on the UI
-  renderTasks();
-
-  renderUIData();
+  render();
 });
 
 // CLICK: clear completed tasks button
@@ -222,13 +211,12 @@ clearCompletedTasksBtn?.addEventListener("click", () => {
   todos.forEach((todo) => {
     if (todo.completed) {
       todo.deleted = true;
+      editingStateTasksIds.delete(todo.id);
     }
   });
   saveTasks();
 
-  renderTasks();
-
-  renderUIData();
+  render();
 });
 
 // CLICK: task status buttons functionality
@@ -244,30 +232,26 @@ tasksStatusButtons.forEach(btn => {
 
 // CLICK: trash bin button
 trashBinButton?.addEventListener("click", () => {
-  formContainer?.classList.add("hide-element");
-  trashBinContainer?.classList.remove("hide-element");
-  renderDeletedTasks();
+  currentScreen = "Trash";
+  render();
 });
 
 // CLICK: quit trash bin button
 quitTrashBinButton?.addEventListener("click", () => {
-  trashBinContainer?.classList.add("hide-element");
-  formContainer?.classList.remove("hide-element");
-
-  renderUIData();
-  renderTasks();
+  currentScreen = "Main";
+  render();
 });
 
 // CLICK: recover all tasks button
 recoverAllTasksButton?.addEventListener("click", () => {
   restoreAllTasks();
-  renderDeletedTasks();
+  render();
 });
 
 // CLICK: delete all tasks button
 deleteAllTasksButton?.addEventListener("click", () => {
   emptyTrash();
-  renderDeletedTasks();
+  render();
 });
 
 // CLICK: recover task button
@@ -276,14 +260,14 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
   if (!(target instanceof Element)) return;
 
   const recoverButton = target.closest(".recover-task-button");
-  if (!recoverButton) return;
+  if (!recoverButton) return;  
 
   const deletedTaskGroup = recoverButton.closest(".deleted-task-group");
   if (!deletedTaskGroup) return;
   const taskId = Number(deletedTaskGroup.id.split("-")[1]);
 
   restoreTask(taskId);
-  renderDeletedTasks();
+  render();
 });
 
 // CLICK: permanently delete task button
@@ -299,7 +283,7 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
   const taskId = Number(deletedTaskGroup.id.split("-")[1]);
 
   deletePermanently(taskId);
-  renderDeletedTasks();
+  render();
 });
 
 
@@ -405,7 +389,6 @@ function renderUIData() {
   if (doneTasksCountSpan)
     doneTasksCountSpan.textContent = String(completedTasksCount);
 }
-
 // render the data based on which filter category is present
 function renderTasks() {
   syncFilterButtonsState();
@@ -434,7 +417,6 @@ function renderTasks() {
   todoContainer?.appendChild(taskGroup);
 });
 }
-
 function renderDeletedTasks() {
   trashBinBodyContainer
     ?.querySelectorAll(".deleted-task-group")
@@ -455,6 +437,33 @@ function renderDeletedTasks() {
     trashBinBodyContainer?.appendChild(deletedTaskGroup);
   }
 }
+function render() {
+  syncScreenState();
+
+  if (currentScreen === "Main") {
+    renderTasks();
+    renderUIData();
+  } else {
+    renderDeletedTasks();
+  }
+}
+function syncFilterButtonsState() {
+  tasksStatusButtons.forEach(button => {
+    const buttonFilter = button.dataset.filter;
+
+    if (!isFilter(buttonFilter)) {
+      console.error("Filter button has a missing or invalid data-filter:", button);
+      button.classList.remove("active-status-style");
+      return;
+    }
+
+    button.classList.toggle("active-status-style", buttonFilter === currentFilter);
+  });
+}
+function syncScreenState() {
+  formContainer?.classList.toggle("hide-element", currentScreen !== "Main");
+  trashBinContainer?.classList.toggle("hide-element", currentScreen !== "Trash");
+}
 
 
 
@@ -470,7 +479,6 @@ function renderDeletedTasks() {
 
 // DOM builder functions
 function createTaskElement(todo: Todo) {
-  
     const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
     taskGroup.id = `task-${todo.id}`;
@@ -517,10 +525,9 @@ function createTaskElement(todo: Todo) {
     deleteIcon.classList.add("fa-solid", "fa-trash-can");
     deleteButton.appendChild(deleteIcon);
     taskRightGroupContainer.append(priorityElement, editButton, deleteButton);
-    
+
     taskRightGroup.append(taskRightGroupContainer);
     taskGroup.append(taskLeftGroup, taskRightGroup);
-
 
     return taskGroup;
 }
@@ -553,21 +560,7 @@ function deleteTaskElement(todo: Todo){
   deletedTaskRightGroup.append(recoverTaskButton, deleteTaskButton)
   deletedTaskGroup.append(deletedTaskLeftGroup, deletedTaskRightGroup);
 
-
   return deletedTaskGroup;
-}
-function syncFilterButtonsState() {
-  tasksStatusButtons.forEach(button => {
-    const buttonFilter = button.dataset.filter;
-
-    if (!isFilter(buttonFilter)) {
-      console.error("Filter button has a missing or invalid data-filter:", button);
-      button.classList.remove("active-status-style");
-      return;
-    }
-
-    button.classList.toggle("active-status-style", buttonFilter === currentFilter);
-  });
 }
 function createEditTaskElement(todo: Todo){
   const taskGroup = document.createElement("div");
@@ -661,7 +654,7 @@ function filterTodos(todos: Todo[], currentFilter: Filter){
 
 // Type guards
 function isPriority(value: unknown): value is Priority {
-  return value === "High" || value == "Medium" || value === "Low";
+  return value === "High" || value === "Medium" || value === "Low";
 }
 
 function isFilter(value: unknown): value is Filter {
