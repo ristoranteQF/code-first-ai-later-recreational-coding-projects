@@ -81,98 +81,47 @@ document.addEventListener("DOMContentLoaded", () => {
 // CHANGE: checkbox sync with data 
 todoContainer?.addEventListener("change", (e) => {
   const target = e.target;
-  if (!(target instanceof HTMLInputElement) || target.type !== "checkbox")
-    return;
+  if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
 
-  const taskGroup = target.closest(".task-group");
-  if (!taskGroup) return;
+  const id = getTaskId(target);
+  if (!id) return;
 
-  const taskId = Number(taskGroup.id.split("-")[1]);
-
-  const task = todos.find((todo) => todo.id === taskId);
+  const task = todos.find((t) => t.id === id);
   if (!task) return;
 
   task.completed = target.checked;
-
   saveTasks();
-
   render();
 });
 
-// CLICK: delete button
+// CLICK: delete/edit/save/cancel button(s)
 todoContainer?.addEventListener("click", (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
 
-  const deleteBtn = target.closest(".delete-btn");
-  if (!deleteBtn) return;
+  const id = getTaskId(target);
+  if (!id) return;
 
-  const taskGroup = deleteBtn.closest(".task-group");
-  if (!taskGroup) return;
-
-  const taskId = Number(taskGroup.id.split("-")[1]);
-
-  deleteTask(taskId);
-  editingStateTasksIds.delete(taskId);
-
-  render();
-});
-
-// CLICK: edit task button
-todoContainer?.addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof Element)) return;
-
-  const editButton = target.closest(".edit-btn");
-  if (!editButton) return;
-  const taskGroup = editButton.closest(".task-group");
-  if (!taskGroup) return;
-
-  const taskId = Number(taskGroup.id.split("-")[1]);
-  editingStateTasksIds.add(taskId);
+  if (target.closest(".delete-btn")) {
+    deleteTask(id);
+    editingStateTasksIds.delete(id);
+  } else if (target.closest(".edit-btn")) {
+    editingStateTasksIds.add(id);
+  } else if (target.closest(".edit-save-btn")) {
+    const input = target.closest(".task-group")?.querySelector<HTMLInputElement>(".edit-input");
+    const newText = input?.value.trim();
+    if (!newText) return;
+    editTask(id, newText);
+    editingStateTasksIds.delete(id);
+  } else if (target.closest(".edit-cancel-btn")) {
+    editingStateTasksIds.delete(id);
+  } else {
+    return;
+  }
 
   render();
 });
 
-// CLICK: save task button - edit functionality
-todoContainer?.addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof Element)) return;
-
-  const saveButton = target.closest(".edit-save-btn");
-  if (!saveButton) return;
-
-  const taskGroup = saveButton.closest(".task-group");
-  if (!taskGroup) return;
-  const taskId = Number(taskGroup.id.split("-")[1]);
- 
-  const editTaskInput =
-    taskGroup.querySelector<HTMLInputElement>(".edit-input");
-  if (!editTaskInput) return;
-
-  // validate the user input first
-  const newText = editTaskInput.value.trim();
-  if (!newText) return;
-
-  editTask(taskId, newText);
-  editingStateTasksIds.delete(taskId);
-  render();
-});
-
-// CLICK: cancel editing task button
-todoContainer?.addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof Element)) return;
-
-  const editCancelButton = target?.closest(".edit-cancel-btn");
-  if (!editCancelButton) return;
-  const taskGroup = editCancelButton.closest(".task-group");
-  if (!taskGroup) return;
-
-  const taskId = Number(taskGroup.id.split("-")[1]);
-  editingStateTasksIds.delete(taskId);
-  render();
-});
 
 // CLICK: add task button
 addTaskButton?.addEventListener("click", () => {
@@ -254,37 +203,25 @@ deleteAllTasksButton?.addEventListener("click", () => {
   render();
 });
 
-// CLICK: recover task button
+// CLICK: recover task and delete task button(s)
 trashBinBodyContainer?.addEventListener("click", (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
 
-  const recoverButton = target.closest(".recover-task-button");
-  if (!recoverButton) return;  
+  const id = getTaskId(target);
+  if (!id) return;
 
-  const deletedTaskGroup = recoverButton.closest(".deleted-task-group");
-  if (!deletedTaskGroup) return;
-  const taskId = Number(deletedTaskGroup.id.split("-")[1]);
+  if (target.closest(".recover-task-button")) {
+    restoreTask(id);
+  } else if (target.closest(".delete-task-button")) {
+    deletePermanently(id);
+  } else {
+    return;
+  }
 
-  restoreTask(taskId);
   render();
 });
 
-// CLICK: permanently delete task button
-trashBinBodyContainer?.addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof Element)) return;
-
-  const deleteButton = target.closest(".delete-task-button");
-  if (!deleteButton) return;
-
-  const deletedTaskGroup = deleteButton.closest(".deleted-task-group");
-  if (!deletedTaskGroup) return;
-  const taskId = Number(deletedTaskGroup.id.split("-")[1]);
-
-  deletePermanently(taskId);
-  render();
-});
 
 
 
@@ -292,12 +229,15 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
 // localstorage CRUD API
 
 function loadTasks(): Todo[] {
-  const data: string | null = localStorage.getItem("todos");
+  const data = localStorage.getItem("todos");
 
   if (!data) return [];
 
   try {
-    return JSON.parse(String(data));
+    const parsed = JSON.parse(data);
+    if(!Array.isArray(parsed)) return [];
+
+    return parsed;
   } catch (error) {
     console.error(error);
     return [];
@@ -305,8 +245,13 @@ function loadTasks(): Todo[] {
 }
 
 function saveTasks() {
-  const data: string = JSON.stringify(todos);
-  localStorage.setItem("todos", data);
+  const data = JSON.stringify(todos);
+  
+  try {
+    localStorage.setItem("todos", data);
+  } catch(error){
+    console.error("An error has occurred while saving the data to local storage. ", error);
+  }
 }
 
 function editTask(id: number, title: string) {
@@ -481,7 +426,8 @@ function syncScreenState() {
 function createTaskElement(todo: Todo) {
     const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
-    taskGroup.id = `task-${todo.id}`;
+    // taskGroup.id = `task-${todo.id}`;
+    taskGroup.dataset.id = String(todo.id);
 
     const taskLeftGroup = document.createElement("div");
     taskLeftGroup.classList.add("task-left-group");
@@ -534,7 +480,9 @@ function createTaskElement(todo: Todo) {
 function deleteTaskElement(todo: Todo){
   const deletedTaskGroup = document.createElement("div");
   deletedTaskGroup.classList.add("deleted-task-group");
-  deletedTaskGroup.id = `task-${todo.id}`
+  // deletedTaskGroup.id = `task-${todo.id}`;
+  deletedTaskGroup.dataset.id = String(todo.id);
+
   const deletedTaskLeftGroup = document.createElement("div");
   deletedTaskLeftGroup.classList.add("deleted-task-left-group");
   const deletedInputLabel = document.createElement("label");
@@ -565,7 +513,8 @@ function deleteTaskElement(todo: Todo){
 function createEditTaskElement(todo: Todo){
   const taskGroup = document.createElement("div");
   taskGroup.classList.add("task-group", "task-group-editing");
-  taskGroup.id = `task-${todo.id}`;
+  // taskGroup.id = `task-${todo.id}`;
+  taskGroup.dataset.id = String(todo.id);
 
   const taskLeftGroup = document.createElement("div");
   taskLeftGroup.classList.add("task-left-group");
@@ -633,6 +582,14 @@ function getCurrentDate(): string {
 
   const formattedDate = `${days[day]}, ${date} ${months[month]}`;
   return formattedDate;
+}
+
+function getTaskId(target: Element): number | undefined {
+  const group = target.closest<HTMLElement>("[data-id]");
+  if(!group) return;
+
+  const id = Number(group.dataset.id);
+  return id;
 }
 
 function filterTodos(todos: Todo[], currentFilter: Filter){
