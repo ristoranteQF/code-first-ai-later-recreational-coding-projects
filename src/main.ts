@@ -49,6 +49,9 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(
 
 
 
+
+const STORAGE_KEY = "todoAppState";
+
 type Priority = "High" | "Medium" | "Low";
 type Filter = "All" | "Active" | "Done";
 type Screen = "Main" | "Trash";
@@ -61,16 +64,24 @@ interface Todo {
   deleted: boolean;
 }
 
-let todos: Todo[] = [];
-let currentFilter: Filter = "All";
-const editingStateTasksIds: Set<number> = new Set();
-let currentScreen: Screen = "Main";
+type State = {
+  todos: Todo[];
+  currentFilter: Filter;
+  currentScreen: Screen;
+  editingStateTasksIds: Set<number>;
+}
 
+let state: State = {
+  todos: [],
+  currentFilter: "All",
+  currentScreen: "Main",
+  editingStateTasksIds: new Set<number>()
+}
 
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  todos = loadTasks();
+  state = loadState();
   render();
   // render current present date
   if (currentDate) {
@@ -88,11 +99,11 @@ todoContainer?.addEventListener("change", (e) => {
   const id = getTaskId(target);
   if (!id) return;
 
-  const task = todos.find((t) => t.id === id);
+  const task = state.todos.find((t) => t.id === id);
   if (!task) return;
 
   task.completed = target.checked;
-  saveTasks();
+  saveState();
   render();
 });
 
@@ -106,17 +117,17 @@ todoContainer?.addEventListener("click", (e) => {
 
   if (target.closest(".delete-btn")) {
     deleteTask(id);
-    editingStateTasksIds.delete(id);
+    state.editingStateTasksIds.delete(id);
   } else if (target.closest(".edit-btn")) {
-    editingStateTasksIds.add(id);
+    state.editingStateTasksIds.add(id);
   } else if (target.closest(".edit-save-btn")) {
     const input = target.closest(".task-group")?.querySelector<HTMLInputElement>(".edit-input");
     const newText = input?.value.trim();
     if (!newText) return;
     editTask(id, newText);
-    editingStateTasksIds.delete(id);
+    state.editingStateTasksIds.delete(id);
   } else if (target.closest(".edit-cancel-btn")) {
-    editingStateTasksIds.delete(id);
+    state.editingStateTasksIds.delete(id);
   } else {
     return;
   }
@@ -146,8 +157,8 @@ addTaskButton?.addEventListener("click", () => {
     deleted: false,
   };
 
-  todos.push(todoItem);
-  saveTasks();
+  state.todos.push(todoItem);
+  saveState();
 
   // remove everything inside the input text field
   if (inputTextField) {
@@ -159,13 +170,13 @@ addTaskButton?.addEventListener("click", () => {
 
 // CLICK: clear completed tasks button
 clearCompletedTasksBtn?.addEventListener("click", () => {
-  todos.forEach((todo) => {
+  state.todos.forEach((todo) => {
     if (todo.completed) {
       todo.deleted = true;
-      editingStateTasksIds.delete(todo.id);
+      state.editingStateTasksIds.delete(todo.id);
     }
   });
-  saveTasks();
+  saveState();
 
   render();
 });
@@ -176,20 +187,23 @@ tasksStatusButtons.forEach(btn => {
     const selectedFilter = btn.dataset.filter;
     if (!isFilter(selectedFilter)) return;
 
-    currentFilter = selectedFilter;
+    state.currentFilter = selectedFilter;
+    saveState();
     renderTasks();
   });
 });
 
 // CLICK: trash bin button
 trashBinButton?.addEventListener("click", () => {
-  currentScreen = "Trash";
+  state.currentScreen = "Trash";
+  saveState();
   render();
 });
 
 // CLICK: quit trash bin button
 quitTrashBinButton?.addEventListener("click", () => {
-  currentScreen = "Main";
+  state.currentScreen = "Main";
+  saveState();
   render();
 });
 
@@ -230,70 +244,80 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
 
 // localstorage CRUD API
 
-function loadTasks(): Todo[] {
-  const data = localStorage.getItem("todos");
-
-  if (!data) return [];
-
+function loadState(): State {
   try {
-    const parsed = JSON.parse(data);
-    if(!Array.isArray(parsed)) return [];
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return state;
 
-    return parsed;
-  } catch (error) {
-    console.error(error);
-    return [];
+    const saved = JSON.parse(raw);
+
+    return {
+      todos: Array.isArray(saved.todos) ? saved.todos : state.todos,
+      currentFilter: isFilter(saved.currentFilter)
+        ? saved.currentFilter
+        : state.currentFilter,
+      currentScreen: saved.currentScreen === "Trash" ? "Trash" : "Main",
+      editingStateTasksIds: new Set<number>(
+        Array.isArray(saved.editingStateTasksIds)
+          ? saved.editingStateTasksIds
+          : [],
+      ),
+    };
+  } catch {
+    return state;
   }
 }
 
-function saveTasks() {
-  const data = JSON.stringify(todos);
-  
+function saveState() {
   try {
-    localStorage.setItem("todos", data);
-  } catch(error){
-    console.error("An error has occurred while saving the data to local storage. ", error);
+    const serializable = {
+      ...state,
+      editingStateTasksIds: [...state.editingStateTasksIds], 
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+  } catch (error) {
+    console.error("Failed to save state:", error);
   }
 }
 
 function editTask(id: number, title: string) {
-  const task = todos.find((t) => t.id === id);
+  const task = state.todos.find((t) => t.id === id);
   if (task) task.title = title;
 
-  saveTasks();
+  saveState();
 }
 
 function deleteTask(id: number): void {
-  const task = todos.find((t) => t.id === id);
+  const task = state.todos.find((t) => t.id === id);
   if (!task) return;
   task.deleted = true;
-  saveTasks();
+  saveState();
 }
 
 function restoreTask(id: number): void {
-  const task = todos.find((t) => t.id === id);
+  const task = state.todos.find((t) => t.id === id);
   if (!task) return;
   task.deleted = false;
-  saveTasks();
+  saveState();
 }
 
 function restoreAllTasks() {
-  todos.forEach((todo) => {
+  state.todos.forEach((todo) => {
     if (todo.deleted) {
       todo.deleted = false;
     }
   });
-  saveTasks();
+  saveState();
 }
 
 function deletePermanently(id: number): void {
-  todos = todos.filter((t) => t.id !== id);
-  saveTasks();
+  state.todos = state.todos.filter((t) => t.id !== id);
+  saveState();
 }
 
 function emptyTrash(): void {
-  todos = todos.filter((t) => !t.deleted);
-  saveTasks();
+  state.todos = state.todos.filter((t) => !t.deleted);
+  saveState();
 }
 
 
@@ -302,7 +326,7 @@ function emptyTrash(): void {
 // UI rendering
 
 function renderUIData() {
-  const activeTasks = todos.filter((todo) => {
+  const activeTasks = state.todos.filter((todo) => {
     return !todo.completed && !todo.deleted;
   }).length;
 
@@ -322,11 +346,11 @@ function renderUIData() {
     }
   }
 
-  const allTasksCount = todos.filter((todo) => !todo.deleted).length;
-  const activeTasksCount = todos.filter(
+  const allTasksCount = state.todos.filter((todo) => !todo.deleted).length;
+  const activeTasksCount = state.todos.filter(
     (todo) => !todo.completed && !todo.deleted,
   ).length;
-  const completedTasksCount = todos.filter(
+  const completedTasksCount = state.todos.filter(
     (todo) => todo.completed && !todo.deleted,
   ).length;
 
@@ -341,7 +365,7 @@ function renderTasks() {
   syncFilterButtonsState();
 
   // get only the todos we need
-  const filteredTodos = filterTodos(todos, currentFilter);
+  const filteredTodos = filterTodos(state.todos, state.currentFilter);
 
   // handle the empty state container
   if (filteredTodos.length === 0) {
@@ -357,7 +381,9 @@ function renderTasks() {
 
   // loop through the filtered list, build each element and append it.
   filteredTodos.forEach(todo => {
-  const taskGroup = editingStateTasksIds.has(todo.id)
+    console.log(typeof state);
+    console.log(typeof state.editingStateTasksIds);
+  const taskGroup = state.editingStateTasksIds.has(todo.id)
     ? createEditTaskElement(todo)
     : createTaskElement(todo);
 
@@ -369,7 +395,7 @@ function renderDeletedTasks() {
     ?.querySelectorAll(".deleted-task-group")
     .forEach((el) => el.remove());
 
-  const countDeleted = todos.filter((todo) => todo.deleted).length;
+  const countDeleted = state.todos.filter((todo) => todo.deleted).length;
 
   if (countDeleted === 0) {
     emptyTrashBinComponent?.classList.remove("hide-element");
@@ -377,7 +403,7 @@ function renderDeletedTasks() {
     emptyTrashBinComponent?.classList.add("hide-element");
   }
 
-  for (const todo of todos) {
+  for (const todo of state.todos) {
     if (!todo.deleted) continue;
 
     const deletedTaskGroup = deleteTaskElement(todo);
@@ -387,7 +413,7 @@ function renderDeletedTasks() {
 function render() {
   syncScreenState();
 
-  if (currentScreen === "Main") {
+  if (state.currentScreen === "Main") {
     renderTasks();
     renderUIData();
   } else {
@@ -404,12 +430,12 @@ function syncFilterButtonsState() {
       return;
     }
 
-    button.classList.toggle("active-status-style", buttonFilter === currentFilter);
+    button.classList.toggle("active-status-style", buttonFilter === state.currentFilter);
   });
 }
 function syncScreenState() {
-  formContainer?.classList.toggle("hide-element", currentScreen !== "Main");
-  trashBinContainer?.classList.toggle("hide-element", currentScreen !== "Trash");
+  formContainer?.classList.toggle("hide-element", state.currentScreen !== "Main");
+  trashBinContainer?.classList.toggle("hide-element", state.currentScreen !== "Trash");
 }
 
 
@@ -428,7 +454,6 @@ function syncScreenState() {
 function createTaskElement(todo: Todo) {
     const taskGroup = document.createElement("div");
     taskGroup.classList.add("task-group");
-    // taskGroup.id = `task-${todo.id}`;
     taskGroup.dataset.id = String(todo.id);
 
     const taskLeftGroup = document.createElement("div");
@@ -515,7 +540,6 @@ function deleteTaskElement(todo: Todo){
 function createEditTaskElement(todo: Todo){
   const taskGroup = document.createElement("div");
   taskGroup.classList.add("task-group", "task-group-editing");
-  // taskGroup.id = `task-${todo.id}`;
   taskGroup.dataset.id = String(todo.id);
 
   const taskLeftGroup = document.createElement("div");
