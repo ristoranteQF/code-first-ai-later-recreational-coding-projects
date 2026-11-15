@@ -170,6 +170,33 @@ todoContainer?.addEventListener("click", (e) => {
   render();
 });
 
+// KEYDOWN: save task that is in edit mode with the enter key
+todoContainer?.addEventListener("keydown", (e) => {
+  const target = e.target;
+  if (!(target instanceof HTMLInputElement) || !target.matches(".edit-input")) return;
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    const id = getTaskId(target);
+    if (!id) return;
+
+    const newText = target.value.trim();
+    if (!newText) return;
+
+    editTask(id, newText);
+    state.editingStateTasksIds.delete(id);
+    saveState();
+    render();
+  } else if (e.key === "Escape") {
+    const id = getTaskId(target);
+    if (!id) return;
+
+    state.editingStateTasksIds.delete(id);
+    saveState();
+    render();
+  }
+});
 
 // CLICK: add task button
 addTaskButton?.addEventListener("click", () => {
