@@ -91,6 +91,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// CHANGE: add task with the enter key
+formContainer?.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  // get the text from the input field
+  const userInput = inputTextField?.value.trim();
+  if (!userInput) {
+    alert("Please enter something cuh!");
+    return;
+  }
+
+  const selectedPriority = priorityElement?.value;
+  const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
+
+  // create a Todo object and push it to the todos global array
+  const todoItem: Todo = {
+    id: Date.now(),
+    title: userInput,
+    priority: taskPriority,
+    completed: false,
+    deleted: false,
+  };
+
+  state.todos.push(todoItem);
+  saveState();
+
+  // remove everything inside the input text field
+  if (inputTextField) {
+    inputTextField.value = "";
+  }
+
+  render();
+})
+
 // CHANGE: checkbox sync with data 
 todoContainer?.addEventListener("change", (e) => {
   const target = e.target;
@@ -132,6 +166,7 @@ todoContainer?.addEventListener("click", (e) => {
     return;
   }
 
+  saveState();
   render();
 });
 
@@ -381,8 +416,6 @@ function renderTasks() {
 
   // loop through the filtered list, build each element and append it.
   filteredTodos.forEach(todo => {
-    console.log(typeof state);
-    console.log(typeof state.editingStateTasksIds);
   const taskGroup = state.editingStateTasksIds.has(todo.id)
     ? createEditTaskElement(todo)
     : createTaskElement(todo);
