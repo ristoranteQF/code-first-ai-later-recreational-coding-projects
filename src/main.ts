@@ -67,6 +67,8 @@ const editingStateTasksIds: Set<number> = new Set();
 let currentScreen: Screen = "Main";
 
 
+
+
 document.addEventListener("DOMContentLoaded", () => {
   todos = loadTasks();
   render();
