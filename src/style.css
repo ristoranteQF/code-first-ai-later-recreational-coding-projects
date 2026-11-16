@@ -8,6 +8,14 @@
 :root {
   --primary-color: rgb(83, 56, 240); 
   --secondary-color: rgb(70, 43, 220);
+  --accent: #5438ee;    
+  --danger: #ff1111;       
+  --danger-dark: #d90000;
+  --text: #000;
+  --muted: #777;          
+  --border: #ccc;
+  --surface: #fff;
+  --button-bg: #eee;        
 }
 
 
@@ -413,7 +421,7 @@ justify-content: space-between;
   border: none;
 }
 .delete-task-button:hover {
-  background-color: rgb(200, 9, 9);;
+  background-color: rgb(200, 9, 9);
 }
 
 
@@ -505,3 +513,52 @@ justify-content: space-between;
   color: white;
   font-weight: bolder;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Confirmation modal */
+  .confirm {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: min(380px, calc(100vw - 32px));
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+  }
+  .confirm::backdrop { background: rgba(0, 0, 0, .45); }
+
+  .confirm-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #fde0e0; color: var(--danger);
+    display: grid; place-items: center; margin-bottom: 14px;
+    font-size: 18px;
+  }
+  .confirm h2 { margin: 0 0 6px; font-size: 20px; }
+  .confirm p  { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+
+  .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+  .confirm-actions button {
+    font-size: 16px; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .confirm-actions .cancel { background: var(--button-bg); color: var(--text); }
+  .confirm-actions .cancel:hover { background: #e2e2e2; }
+  .confirm-actions .confirm-delete { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .confirm-actions .confirm-delete:hover { background: var(--danger-dark); border-color: var(--danger-dark); }
