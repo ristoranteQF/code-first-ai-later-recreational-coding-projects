@@ -46,6 +46,10 @@ const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
 const noTasksContainer = document.querySelector<HTMLDivElement>(
   ".no-tasks-container",
 );
+const deleteAllDialog = document.querySelector<HTMLDialogElement>(".confirm");
+const cancelDeleteAllDialog = document.querySelector<HTMLButtonElement>("#confirmCancel");
+const confirmDeleteAllButton = document.querySelector<HTMLButtonElement>(".confirm-delete");
+const confirmCount = document.querySelector<HTMLSpanElement>("#confirmCount");
 
 
 
@@ -277,9 +281,26 @@ recoverAllTasksButton?.addEventListener("click", () => {
 
 // CLICK: delete all tasks button
 deleteAllTasksButton?.addEventListener("click", () => {
+  deleteAllDialog?.showModal();
+
+  let countDeletedTasks = 0;
+  state.todos.forEach(todo => {
+    if(todo.deleted === true){
+      countDeletedTasks++;
+    }
+  });
+
+  if(!confirmCount) return;
+  confirmCount.innerHTML = String(countDeletedTasks);
+});
+cancelDeleteAllDialog?.addEventListener("click", () => {
+  deleteAllDialog?.close();
+})
+confirmDeleteAllButton?.addEventListener("click", () => {
+  deleteAllDialog?.close();
   emptyTrash();
   render();
-});
+})
 
 // CLICK: recover task and delete task button(s)
 trashBinBodyContainer?.addEventListener("click", (e) => {
