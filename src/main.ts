@@ -302,6 +302,8 @@ confirmDeleteAllButton?.addEventListener("click", () => {
   render();
 })
 
+
+
 // CLICK: recover task and delete task button(s)
 trashBinBodyContainer?.addEventListener("click", (e) => {
   const target = e.target;
