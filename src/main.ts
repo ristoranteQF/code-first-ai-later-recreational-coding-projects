@@ -48,8 +48,12 @@ const noTasksContainer = document.querySelector<HTMLDivElement>(
 );
 const deleteAllDialog = document.querySelector<HTMLDialogElement>(".confirm");
 const cancelDeleteAllDialog = document.querySelector<HTMLButtonElement>("#confirmCancel");
-const confirmDeleteAllButton = document.querySelector<HTMLButtonElement>(".confirm-delete");
+const confirmDeleteAllButton = document.querySelector<HTMLButtonElement>("#confirmDelete");
 const confirmCount = document.querySelector<HTMLSpanElement>("#confirmCount");
+const deleteTaskDialog = document.querySelector<HTMLDialogElement>(".confirmDeleteTask");
+const cancelDeleteTaskButton = deleteTaskDialog?.querySelector<HTMLButtonElement>(".cancel");
+const confirmDeleteTaskButton = deleteTaskDialog?.querySelector<HTMLButtonElement>(".confirm-delete");
+
 
 
 
@@ -303,7 +307,7 @@ confirmDeleteAllButton?.addEventListener("click", () => {
 })
 
 
-
+let pendingDeleteId: string | null = null;
 // CLICK: recover task and delete task button(s)
 trashBinBodyContainer?.addEventListener("click", (e) => {
   const target = e.target;
@@ -315,13 +319,27 @@ trashBinBodyContainer?.addEventListener("click", (e) => {
   if (target.closest(".recover-task-button")) {
     restoreTask(id);
   } else if (target.closest(".delete-task-button")) {
-    deletePermanently(id);
+    pendingDeleteId = String(id);
+    deleteTaskDialog?.showModal();
+    return;
   } else {
     return;
   }
 
   render();
 });
+
+confirmDeleteTaskButton?.addEventListener("click", () => {
+  if (pendingDeleteId) deletePermanently(Number(pendingDeleteId));
+  pendingDeleteId = null;
+  deleteTaskDialog?.close();
+  render();
+})
+
+cancelDeleteTaskButton?.addEventListener("click", () => {
+  pendingDeleteId = null;
+  deleteTaskDialog?.close();
+})
 
 
 
