@@ -1,59 +1,35 @@
 // DOM elements
-const currentDate = document.querySelector<HTMLElement>(".current-date");
-const inputTextField = document.querySelector<HTMLInputElement>(".input-text");
-const formContainer =
-  document.querySelector<HTMLFormElement>(".form-container");
-const trashBinContainer = document.querySelector<HTMLDivElement>(
-  ".trash-bin-screen-container",
-);
-const emptyTrashBinComponent = document.querySelector<HTMLDivElement>(
-  ".empty-trash-bin-body-container",
-);
-const trashBinBodyContainer = document.querySelector<HTMLDivElement>(
-  ".trash-bin-container-body",
-);
+const currentDate = getElement<HTMLElement>(".current-date");
+const inputTextField = getElement<HTMLInputElement>(".input-text");
+const formContainer = getElement<HTMLFormElement>(".form-container");
+const trashBinContainer = getElement<HTMLDivElement>(".trash-bin-screen-container");
+const emptyTrashBinComponent = getElement<HTMLDivElement>(".empty-trash-bin-body-container");
+const trashBinBodyContainer = getElement<HTMLDivElement>(".trash-bin-container-body");
 
-const addTaskButton =
-  document.querySelector<HTMLButtonElement>(".add-todo-btn");
-const clearCompletedTasksBtn = document.querySelector<HTMLButtonElement>(
-  ".clear-completed-tasks-btn",
-);
-const tasksStatusButtons = document.querySelectorAll<HTMLButtonElement>(
-  "button.tasks-status-btn",
-);
-const trashBinButton =
-  document.querySelector<HTMLButtonElement>(".trash-bin-button");
-const quitTrashBinButton = document.querySelector<HTMLButtonElement>(
-  ".return-to-tasks-button",
-);
-const recoverAllTasksButton = document.querySelector<HTMLButtonElement>(
-  ".recover-all-tasks-button",
-);
-const deleteAllTasksButton = document.querySelector<HTMLButtonElement>(
-  ".delete-all-tasks-button",
-);
+const addTaskButton = getElement<HTMLButtonElement>(".add-todo-btn");
+const clearCompletedTasksBtn = getElement<HTMLButtonElement>(".clear-completed-tasks-btn");
+const tasksStatusButtons = getElements<HTMLButtonElement>("button.tasks-status-btn");
+const trashBinButton = getElement<HTMLButtonElement>(".trash-bin-button");
+const quitTrashBinButton = getElement<HTMLButtonElement>(".return-to-tasks-button");
+const recoverAllTasksButton = getElement<HTMLButtonElement>(".recover-all-tasks-button");
+const deleteAllTasksButton = getElement<HTMLButtonElement>(".delete-all-tasks-button");
 
-const allTasksCountSpan =
-  document.querySelector<HTMLSpanElement>(".all-tasks-count");
-const activeTasksCountSpan = document.querySelector<HTMLSpanElement>(
-  ".active-tasks-count",
-);
-const doneTasksCountSpan =
-  document.querySelector<HTMLSpanElement>(".done-tasks-count");
-const taskCount = document.querySelector<HTMLSpanElement>(".task-count");
-const priorityElement = document.querySelector<HTMLSelectElement>("#priority");
-const todoContainer = document.querySelector<HTMLDivElement>(".todo-container");
-const noTasksContainer = document.querySelector<HTMLDivElement>(
-  ".no-tasks-container",
-);
-const deleteAllDialog = document.querySelector<HTMLDialogElement>(".confirm");
-const cancelDeleteAllDialog = document.querySelector<HTMLButtonElement>("#confirmCancel");
-const confirmDeleteAllButton = document.querySelector<HTMLButtonElement>("#confirmDelete");
-const confirmCount = document.querySelector<HTMLSpanElement>("#confirmCount");
-const deleteTaskDialog = document.querySelector<HTMLDialogElement>(".confirmDeleteTask");
-const cancelDeleteTaskButton = deleteTaskDialog?.querySelector<HTMLButtonElement>(".cancel");
-const confirmDeleteTaskButton = deleteTaskDialog?.querySelector<HTMLButtonElement>(".confirm-delete");
+const allTasksCountSpan = getElement<HTMLSpanElement>(".all-tasks-count");
+const activeTasksCountSpan = getElement<HTMLSpanElement>(".active-tasks-count");
+const doneTasksCountSpan = getElement<HTMLSpanElement>(".done-tasks-count");
+const taskCount = getElement<HTMLSpanElement>(".task-count");
+const priorityElement = getElement<HTMLSelectElement>("#priority");
+const todoContainer = getElement<HTMLDivElement>(".todo-container");
+const noTasksContainer = getElement<HTMLDivElement>(".no-tasks-container");
 
+const deleteAllDialog = getElement<HTMLDialogElement>(".confirm");
+const cancelDeleteAllDialog = getElement<HTMLButtonElement>("#confirmCancel");
+const confirmDeleteAllButton = getElement<HTMLButtonElement>("#confirmDelete");
+const confirmCount = getElement<HTMLSpanElement>("#confirmCount");
+
+const deleteTaskDialog = getElement<HTMLDialogElement>(".confirmDeleteTask");
+const cancelDeleteTaskButton = getElement<HTMLButtonElement>(".cancel", deleteTaskDialog);
+const confirmDeleteTaskButton = getElement<HTMLButtonElement>(".confirm-delete", deleteTaskDialog);
 
 
 
@@ -731,6 +707,24 @@ function filterTodos(todos: Todo[], currentFilter: Filter){
   });
 
   return filteredTodos;
+}
+
+function getElement<T extends Element>(
+  selector: string,
+  root: ParentNode = document,
+): T {
+  const el = root.querySelector<T>(selector);
+  if (!el) throw new Error(`Missing element: ${selector}`);
+  return el;
+}
+
+function getElements<T extends Element>(
+  selector: string,
+  root: ParentNode = document,
+): NodeListOf<T> {
+  const els = root.querySelectorAll<T>(selector);
+  if (els.length === 0) throw new Error(`No elements found: ${selector}`);
+  return els;
 }
 
 
