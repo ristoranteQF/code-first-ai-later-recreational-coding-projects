@@ -1,5 +1,6 @@
-import type { State } from "./types.ts";
+import type { State, Priority } from "./types.ts";
 import { loadState, saveState } from "./storage.ts";
+import * as api from "./api.ts";
 
 const defaultState: State = {
   todos: [],
@@ -9,6 +10,17 @@ const defaultState: State = {
 };
 
 export const state: State = loadState(defaultState);
+
+export async function loadTodos(): Promise<void> {
+  state.todos = await api.fetchTodos();
+}
+
+export async function addTodo(title: string, priority: Priority): Promise<void> {
+  const created = await api.createTodo(title, priority);
+  state.todos.push(created);
+}
+
+
 
 export function editTask(id: number, title: string) {
   const task = state.todos.find((t) => t.id === id);

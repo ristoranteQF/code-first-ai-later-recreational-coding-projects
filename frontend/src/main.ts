@@ -6,14 +6,15 @@ import { getTaskId, confirmCount, deleteTaskDialog, formContainer, todoContainer
 import { getCurrentDate } from "./utils.ts";
 import type { Todo, Priority } from "./types.ts"
 import { isPriority, isFilter } from "./guards.ts";
-import { state, editTask, deleteTask, restoreTask, restoreAllTasks, deletePermanently, emptyTrash } from "./state.ts";
+import { state, addTodo, loadTodos, editTask, deleteTask, restoreTask, restoreAllTasks, deletePermanently, emptyTrash } from "./state.ts";
 import { render, renderTasks } from "./render.ts";
 import { saveState } from "./storage.ts";
 
 
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadTodos();
   render();
   // render current present date
   if (currentDate) {
@@ -24,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // CHANGE: add task with the enter key
-formContainer.addEventListener("submit", (e) => {
+formContainer.addEventListener("submit", async e => {
   e.preventDefault();
 
   // get the text from the input field
@@ -37,17 +38,7 @@ formContainer.addEventListener("submit", (e) => {
   const selectedPriority = priorityElement.value;
   const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
-  // create a Todo object and push it to the todos global array
-  const todoItem: Todo = {
-    id: Date.now(),
-    title: userInput,
-    priority: taskPriority,
-    completed: false,
-    deleted: false,
-  };
-
-  state.todos.push(todoItem);
-  saveState(state);
+  await addTodo(userInput, taskPriority);
 
   // remove everything inside the input text field
   if (inputTextField) {
@@ -133,7 +124,7 @@ todoContainer.addEventListener("keydown", (e) => {
 });
 
 // CLICK: add task button
-addTaskButton.addEventListener("click", () => {
+addTaskButton.addEventListener("click", async () => {
   // get the text from the input field
   const userInput = inputTextField.value.trim();
   if (!userInput) {
@@ -144,17 +135,7 @@ addTaskButton.addEventListener("click", () => {
   const selectedPriority = priorityElement.value;
   const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
-  // create a Todo object and push it to the todos global array
-  const todoItem: Todo = {
-    id: Date.now(),
-    title: userInput,
-    priority: taskPriority,
-    completed: false,
-    deleted: false,
-  };
-
-  state.todos.push(todoItem);
-  saveState(state);
+  await addTodo(userInput, taskPriority);
 
   // remove everything inside the input text field
   if (inputTextField) {
