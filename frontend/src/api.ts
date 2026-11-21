@@ -20,7 +20,6 @@ export async function createTodo(title: string, priority: Priority): Promise<Tod
 
 export async function checkTodo(id: number, completed: boolean): Promise<Todo> {
   const todoEndpoint = BASE + `/${String(id)}`;
-  console.log(todoEndpoint);
   const res = await fetch(todoEndpoint, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

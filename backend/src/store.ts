@@ -10,9 +10,8 @@ export const createTodo = (title: string, priority: Priority): Todo => {
   return todo;
 };
 
-export const checkTodo = (id: number, completed: boolean): Todo => {
-  const todo: Todo = todos.find(todo => todo.id === id);
-  if(!todo) throw new Error(`Todo with id ${id} does not exist.`);
-  todo.completed = completed;
+export const checkTodo = (id: number, completed: boolean): Todo | undefined => {
+  const todo = todos.find(t => t.id === id);
+  if (todo) todo.completed = completed;
   return todo;
-}
+};

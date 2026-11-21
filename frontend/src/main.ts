@@ -38,7 +38,12 @@ formContainer.addEventListener("submit", async e => {
   const selectedPriority = priorityElement.value;
   const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
-  await addTodo(userInput, taskPriority);
+  try {
+    await addTodo(userInput, taskPriority);
+  } catch(error){
+    console.error(error);
+    alert("Could not create the task. Is the server running?");
+  }
 
   // remove everything inside the input text field
   if (inputTextField) {
@@ -58,9 +63,13 @@ todoContainer.addEventListener("change",  async (e) => {
   const id = getTaskId(target);
   if (!id) return;
 
-  await modifyStateTodo(id, target.checked);
+  try {
+    await modifyStateTodo(id, target.checked);
+  } catch(error){
+    console.error(error);
+    alert("Could not update the task. Is the server running?");
+  }
 
-  // saveState(state);
   render();
 });
 
@@ -133,7 +142,12 @@ addTaskButton.addEventListener("click", async () => {
   const selectedPriority = priorityElement.value;
   const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
-  await addTodo(userInput, taskPriority);
+  try {
+    await addTodo(userInput, taskPriority);
+  } catch(error){
+    console.error(error);
+    alert("Could not create the task. Is the server running?");
+  }
 
   // remove everything inside the input text field
   if (inputTextField) {
