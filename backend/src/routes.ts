@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { todos, createTodo, removeTodo } from "./store.js";
+import { todos, createTodo, checkTodo, removeTodo } from "./store.js";
 
 const router = Router();
 
@@ -11,15 +11,11 @@ router.post("/", (req, res) => {
 });
 
 router.patch("/:id", (req, res) => {
-  const todo = todos.find(t => t.id === Number(req.params.id));
-  if (!todo) return res.sendStatus(404);
-  Object.assign(todo, req.body);
-  res.json(todo);
+  const id = Number(req.params.id);
+  const { completed } = req.body;
+  res.status(200).json(checkTodo(id, completed));
 });
 
-router.delete("/:id", (req, res) => {
-  removeTodo(Number(req.params.id));
-  res.sendStatus(204);
-});
+
 
 export default router;

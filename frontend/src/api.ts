@@ -17,3 +17,15 @@ export async function createTodo(title: string, priority: Priority): Promise<Tod
   if (!res.ok) throw new Error("Failed to create todo");
   return res.json();
 }
+
+export async function checkTodo(id: number, completed: boolean): Promise<Todo> {
+  const todoEndpoint = BASE + `/${String(id)}`;
+  console.log(todoEndpoint);
+  const res = await fetch(todoEndpoint, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ completed }),
+  });
+  if(!res.ok) throw new Error("Failed to tick todo, you heard?");
+  return res.json();
+}

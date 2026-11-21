@@ -20,6 +20,12 @@ export async function addTodo(title: string, priority: Priority): Promise<void> 
   state.todos.push(created);
 }
 
+export async function modifyStateTodo(id: number, completed: boolean){
+  const tickedTodo = await api.checkTodo(id, completed);
+  const todo = state.todos.find(todo => todo.id === id);
+  todo.completed = tickedTodo.completed;
+}
+
 
 
 export function editTask(id: number, title: string) {

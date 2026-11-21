@@ -6,7 +6,7 @@ import { getTaskId, confirmCount, deleteTaskDialog, formContainer, todoContainer
 import { getCurrentDate } from "./utils.ts";
 import type { Todo, Priority } from "./types.ts"
 import { isPriority, isFilter } from "./guards.ts";
-import { state, addTodo, loadTodos, editTask, deleteTask, restoreTask, restoreAllTasks, deletePermanently, emptyTrash } from "./state.ts";
+import { state, addTodo, loadTodos, editTask, deleteTask, restoreTask, restoreAllTasks, deletePermanently, emptyTrash, modifyStateTodo } from "./state.ts";
 import { render, renderTasks } from "./render.ts";
 import { saveState } from "./storage.ts";
 
@@ -51,18 +51,16 @@ formContainer.addEventListener("submit", async e => {
 })
 
 // CHANGE: checkbox sync with data 
-todoContainer.addEventListener("change", (e) => {
+todoContainer.addEventListener("change",  async (e) => {
   const target = e.target;
   if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
 
   const id = getTaskId(target);
   if (!id) return;
 
-  const task = state.todos.find((t) => t.id === id);
-  if (!task) return;
+  await modifyStateTodo(id, target.checked);
 
-  task.completed = target.checked;
-  saveState(state);
+  // saveState(state);
   render();
 });
 
