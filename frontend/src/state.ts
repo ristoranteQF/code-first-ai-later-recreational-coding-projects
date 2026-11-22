@@ -1,4 +1,4 @@
-import type { State, Priority } from "./types.ts";
+import type { Todo, State, Priority } from "./types.ts";
 import { loadState, saveState } from "./storage.ts";
 import * as api from "./api.ts";
 
@@ -17,15 +17,25 @@ export async function loadTodos(): Promise<void> {
 
 export async function addTodo(title: string, priority: Priority): Promise<void> {
   const created = await api.createTodo(title, priority);
+  if(!created) return;
   state.todos.push(created);
 }
 
-export async function modifyStateTodo(id: number, completed: boolean){
-  const tickedTodo = await api.checkTodo(id, completed);
-  const todo = state.todos.find(todo => todo.id === id);
-  todo.completed = tickedTodo.completed;
+export async function modifyStateTodo(
+  id: number,
+  changes: Partial<Omit<Todo, "id">>,
+): Promise<void> {
+  const todo = state.todos.find((t) => t.id === id);
+  if (!todo) throw new Error(`Todo ${id} not found in local state`);
+
+  const updated = await api.updateTodo(id, changes);
+  Object.assign(todo, updated);
 }
 
+// export async function moveToTrash(id: number): Promise<void>{
+//   const todo = await api.softDeleteTask(id);
+//   const localTodo = state.todos.find(todo => todo.id === id);
+// }
 
 
 export function editTask(id: number, title: string) {

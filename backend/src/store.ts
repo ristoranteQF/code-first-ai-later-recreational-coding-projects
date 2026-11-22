@@ -10,8 +10,10 @@ export const createTodo = (title: string, priority: Priority): Todo => {
   return todo;
 };
 
-export const checkTodo = (id: number, completed: boolean): Todo | undefined => {
+export const updateTodo = (id: number, changes: Partial<Omit<Todo, "id">>): Todo | undefined => {
   const todo = todos.find(t => t.id === id);
-  if (todo) todo.completed = completed;
+  if (todo){
+    Object.assign(todo, changes);
+  }
   return todo;
 };

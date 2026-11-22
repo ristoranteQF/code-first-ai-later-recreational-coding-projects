@@ -64,10 +64,10 @@ todoContainer.addEventListener("change",  async (e) => {
   if (!id) return;
 
   try {
-    await modifyStateTodo(id, target.checked);
+    await modifyStateTodo(id, { completed: target.checked });
   } catch(error){
     console.error(error);
-    alert("Could not update the task. Is the server running?");
+    alert(`Coult not update the task: ${error.message}`);
   }
 
   render();
@@ -84,6 +84,10 @@ todoContainer.addEventListener("click", (e) => {
   if (target.closest(".delete-btn")) {
     deleteTask(id);
     state.editingStateTasksIds.delete(id);
+
+
+
+
   } else if (target.closest(".edit-btn")) {
     state.editingStateTasksIds.add(id);
   } else if (target.closest(".edit-save-btn")) {
