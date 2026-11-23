@@ -30,3 +30,40 @@ export async function updateTodo(
   if (!res.ok) throw new Error("Failed to update todo");
   return res.json();
 }
+
+export async function deleteTodo(id: number): Promise<void>{
+  const res = await fetch(`${BASE}/${id}`, {
+    method: "DELETE",
+    body: JSON.stringify({id}),
+  });
+  if(!res.ok) throw new Error("Failed to delete todo.");
+  return;
+}
+
+export async function clearCompleted(): Promise<Todo[]> {
+  const res = await fetch(`${BASE}/clear-completed`, {
+    method: "POST",
+  });
+
+  if(!res.ok) throw new Error("Failed to clear completed todos.");
+
+  return res.json();
+}
+
+export async function deleteAll(): Promise<Todo[]> {
+  const res = await fetch(`${BASE}/delete-all`, {
+    method: "DELETE",
+  });
+  if(!res.ok) throw new Error("Failed to empty trash bin.");
+
+  return res.json();
+}
+
+export async function recoverAll(): Promise<Todo[]> {
+  const res = await fetch(`${BASE}/recover-all`, {
+    method: "POST",
+  });
+  if(!res.ok) throw new Error("Failed to recover tasks.");
+
+  return res.json();
+}

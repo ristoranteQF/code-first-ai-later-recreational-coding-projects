@@ -32,45 +32,40 @@ export async function modifyStateTodo(
   Object.assign(todo, updated);
 }
 
-// export async function moveToTrash(id: number): Promise<void>{
-//   const todo = await api.softDeleteTask(id);
-//   const localTodo = state.todos.find(todo => todo.id === id);
-// }
+export async function deleteTodoPermanently(id: number): Promise<void> {
+  const todo = state.todos.find((t) => t.id === id);
+  if (!todo) throw new Error(`Todo ${id} not found in local state`);
 
-
-export function editTask(id: number, title: string) {
-  const task = state.todos.find((t) => t.id === id);
-  if (task) task.title = title;
-  saveState(state);
+  await api.deleteTodo(id);
+  state.todos = state.todos.filter(todo => todo.id !== id);
 }
 
-export function deleteTask(id: number): void {
-  const task = state.todos.find((t) => t.id === id);
-  if (!task) return;
-  task.deleted = true;
-  saveState(state);
+export async function handleClearCompleted(): Promise<void> {
+  const completedTodos = await api.clearCompleted();
+  if(!completedTodos) return;
+
+  state.todos = [...completedTodos];
 }
 
-export function restoreTask(id: number): void {
-  const task = state.todos.find((t) => t.id === id);
-  if (!task) return;
-  task.deleted = false;
-  saveState(state);
-}
-
-export function restoreAllTasks() {
-  state.todos.forEach((todo) => {
-    if (todo.deleted) todo.deleted = false;
+export async function handleRecoverAll(): Promise<void> {
+  let countsoftDeletedTodos = 0;
+  state.todos.forEach(todo => {
+    if(todo.deleted === true){
+      countsoftDeletedTodos++;
+    }
   });
-  saveState(state);
+
+  if(!countsoftDeletedTodos) return;
+
+  const recovered = await api.recoverAll();
+  if(!recovered) return;
+
+  state.todos = [...recovered.recovered];
 }
 
-export function deletePermanently(id: number): void {
-  state.todos = state.todos.filter((t) => t.id !== id);
-  saveState(state);
-}
+export async function handleDeleteAll(): Promise<void> {
+  const currentTasks = await api.deleteAll();
+  if(!currentTasks) return;
 
-export function emptyTrash(): void {
-  state.todos = state.todos.filter((t) => !t.deleted);
-  saveState(state);
+  state.todos = [...currentTasks.deleted];
 }

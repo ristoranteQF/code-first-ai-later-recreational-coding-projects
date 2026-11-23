@@ -6,7 +6,7 @@ import { getTaskId, confirmCount, deleteTaskDialog, formContainer, todoContainer
 import { getCurrentDate } from "./utils.ts";
 import type { Todo, Priority } from "./types.ts"
 import { isPriority, isFilter } from "./guards.ts";
-import { state, addTodo, loadTodos, editTask, deleteTask, restoreTask, restoreAllTasks, deletePermanently, emptyTrash, modifyStateTodo } from "./state.ts";
+import { state, addTodo, loadTodos, deleteTodoPermanently, modifyStateTodo, handleClearCompleted, handleRecoverAll, handleDeleteAll } from "./state.ts";
 import { render, renderTasks } from "./render.ts";
 import { saveState } from "./storage.ts";
 
@@ -74,7 +74,7 @@ todoContainer.addEventListener("change",  async (e) => {
 });
 
 // CLICK: delete/edit/save/cancel button(s)
-todoContainer.addEventListener("click", (e) => {
+todoContainer.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
 
@@ -82,19 +82,15 @@ todoContainer.addEventListener("click", (e) => {
   if (!id) return;
 
   if (target.closest(".delete-btn")) {
-    deleteTask(id);
     state.editingStateTasksIds.delete(id);
-
-
-
-
+    await modifyStateTodo(id, { deleted: true })
   } else if (target.closest(".edit-btn")) {
     state.editingStateTasksIds.add(id);
   } else if (target.closest(".edit-save-btn")) {
     const input = target.closest(".task-group")?.querySelector<HTMLInputElement>(".edit-input");
     const newText = input?.value.trim();
     if (!newText) return;
-    editTask(id, newText);
+    await modifyStateTodo(id, { title: newText });
     state.editingStateTasksIds.delete(id);
   } else if (target.closest(".edit-cancel-btn")) {
     state.editingStateTasksIds.delete(id);
@@ -164,14 +160,14 @@ addTaskButton.addEventListener("click", async () => {
 });
 
 // CLICK: clear completed tasks button
-clearCompletedTasksBtn.addEventListener("click", () => {
-  state.todos.forEach((todo) => {
-    if (todo.completed) {
-      todo.deleted = true;
-      state.editingStateTasksIds.delete(todo.id);
-    }
-  });
-  saveState(state);
+clearCompletedTasksBtn.addEventListener("click", async () => {
+  try {
+    await handleClearCompleted();
+  } catch(error){
+    console.error(error);
+    alert(`Could not clear completed tasks. Error: ${error.name}`);
+    return;
+  }
 
   render();
 });
@@ -203,8 +199,15 @@ quitTrashBinButton.addEventListener("click", () => {
 });
 
 // CLICK: recover all tasks button
-recoverAllTasksButton.addEventListener("click", () => {
-  restoreAllTasks();
+recoverAllTasksButton.addEventListener("click", async () => {
+  try {
+    await handleRecoverAll();
+  } catch(error){
+    console.error(error);
+    alert(`Could not recover tasks. Error: ${error.name}`);
+    return;
+  }
+
   render();
 });
 
@@ -225,16 +228,32 @@ deleteAllTasksButton.addEventListener("click", () => {
 cancelDeleteAllDialog.addEventListener("click", () => {
   deleteAllDialog.close();
 })
-confirmDeleteAllButton.addEventListener("click", () => {
+confirmDeleteAllButton.addEventListener("click", async () => {
   deleteAllDialog.close();
-  emptyTrash();
+
+  let countDeletedTasks = 0;
+  state.todos.forEach(todo => {
+    if(todo.deleted === true){
+      countDeletedTasks++;
+    }
+  });
+
+  if(!countDeletedTasks) return;
+  
+  try {
+    await handleDeleteAll();
+  } catch(error) {
+    console.error(error);
+    alert(`Unknown error has occurred. Error: ${error.message}`);
+  }
+
   render();
 })
 
 
 let pendingDeleteId: string | null = null;
 // CLICK: recover task and delete task button(s)
-trashBinBodyContainer.addEventListener("click", (e) => {
+trashBinBodyContainer.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
 
@@ -242,7 +261,7 @@ trashBinBodyContainer.addEventListener("click", (e) => {
   if (!id) return;
 
   if (target.closest(".recover-task-button")) {
-    restoreTask(id);
+    await modifyStateTodo(id, { deleted: false });
   } else if (target.closest(".delete-task-button")) {
     pendingDeleteId = String(id);
     deleteTaskDialog.showModal();
@@ -254,8 +273,16 @@ trashBinBodyContainer.addEventListener("click", (e) => {
   render();
 });
 
-confirmDeleteTaskButton.addEventListener("click", () => {
-  if (pendingDeleteId) deletePermanently(Number(pendingDeleteId));
+confirmDeleteTaskButton.addEventListener("click", async () => {
+  if (pendingDeleteId){
+    try {
+      await deleteTodoPermanently(Number(pendingDeleteId));
+    } catch(error) {
+      console.error(error);
+      alert(`Could not delete the todo. Error name: ${error.name}`);
+      return;
+    }
+  }
   pendingDeleteId = null;
   deleteTaskDialog.close();
   render();
