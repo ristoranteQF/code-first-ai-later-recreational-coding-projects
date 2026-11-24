@@ -11,7 +11,7 @@ export function loadState(defaults: State): State {
     const saved = JSON.parse(raw);
 
     return {
-      todos: Array.isArray(saved.todos) ? saved.todos : defaults.todos,
+      todos: defaults.todos,
       currentFilter: isFilter(saved.currentFilter)
         ? saved.currentFilter
         : defaults.currentFilter,
@@ -30,7 +30,8 @@ export function loadState(defaults: State): State {
 export function saveState(state: State): void {
   try {
     const serializable = {
-      ...state,
+      currentFilter: state.currentFilter,
+      currentScreen: state.currentScreen,
       editingStateTasksIds: [...state.editingStateTasksIds],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));

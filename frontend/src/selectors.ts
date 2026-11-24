@@ -14,3 +14,6 @@ export function filterTodos(todos: Todo[], currentFilter: Filter){
 
   return filteredTodos;
 }
+
+export const countDeleted = (todos: Todo[]): number =>
+  todos.filter((t) => t.deleted).length;

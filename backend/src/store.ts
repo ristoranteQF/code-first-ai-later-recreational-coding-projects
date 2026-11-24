@@ -18,17 +18,6 @@ export const updateTodo = (id: number, changes: Partial<Omit<Todo, "id">>): Todo
   return todo;
 };
 
-export const clearCompleted = (): Todo[] => {
-  todos.forEach(todo => {
-    if(todo.completed === true){
-      todo.deleted = true;
-    }
-  });
-
-  console.log(todos);
-
-  return todos;
-}
 
 export const recoverAll = (): Todo[] => {
   todos.forEach(todo => {
@@ -45,7 +34,16 @@ export const deleteAll = (): Todo[] => {
   return todos;
 }
 
-export const deleteTodoPermanently = (id: number): void => {
-  todos = todos.filter(todo => todo.id !== id);
-  return;
+
+export const clearCompleted = (): Todo[] => {
+  todos.forEach((todo) => {
+    if (todo.completed) todo.deleted = true;
+  });
+  return todos;
+};
+
+export const deleteTodoPermanently = (id: number): boolean => {
+  const before = todos.length;
+  todos = todos.filter((todo) => todo.id !== id);
+  return todos.length < before; // true if something was removed
 };

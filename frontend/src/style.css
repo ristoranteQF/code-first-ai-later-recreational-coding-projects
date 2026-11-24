@@ -114,7 +114,7 @@ option {
 }
 .tasks-status-btn:hover {
   background-color: var(--secondary-color);
-  color: black;
+  color: white;
 }
 
 

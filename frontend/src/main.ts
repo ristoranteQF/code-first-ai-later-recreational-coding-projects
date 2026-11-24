@@ -4,19 +4,30 @@ import { getTaskId, confirmCount, deleteTaskDialog, formContainer, todoContainer
   deleteAllDialog, cancelDeleteTaskButton, currentDate, inputTextField, priorityElement
  } from "./dom.ts";
 import { getCurrentDate } from "./utils.ts";
-import type { Todo, Priority } from "./types.ts"
+import type { Priority } from "./types.ts";
 import { isPriority, isFilter } from "./guards.ts";
 import { state, addTodo, loadTodos, deleteTodoPermanently, modifyStateTodo, handleClearCompleted, handleRecoverAll, handleDeleteAll } from "./state.ts";
+import { countDeleted } from "./selectors.ts";
 import { render, renderTasks } from "./render.ts";
 import { saveState } from "./storage.ts";
 
+// Runs a server action. On failure: logs, alerts, returns false.
+async function run(action: () => Promise<void>, failMessage: string): Promise<boolean> {
+  try {
+    await action();
+    return true;
+  } catch (error) {
+    console.error(error);
 
-
+    const msg = error instanceof Error ? error.message : String(error);
+    alert(`${failMessage}: ${msg}`);
+    return false;
+  }
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadTodos();
+  await run(loadTodos, "Could not load tasks");
   render();
-  // render current present date
   if (currentDate) {
     currentDate.textContent = getCurrentDate();
   } else {
@@ -24,11 +35,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// CHANGE: add task with the enter key
-formContainer.addEventListener("submit", async e => {
-  e.preventDefault();
-
-  // get the text from the input field
+// ADD TASK (form submit and button share one function)
+async function handleAddTask() {
   const userInput = inputTextField.value.trim();
   if (!userInput) {
     alert("Please enter something cuh!");
@@ -38,42 +46,43 @@ formContainer.addEventListener("submit", async e => {
   const selectedPriority = priorityElement.value;
   const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
 
-  try {
-    await addTodo(userInput, taskPriority);
-  } catch(error){
-    console.error(error);
-    alert("Could not create the task. Is the server running?");
-  }
+  const ok = await run(() => addTodo(userInput, taskPriority), "Could not create the task");
+  if (!ok) return; 
 
-  // remove everything inside the input text field
-  if (inputTextField) {
-    inputTextField.value = "";
-  }
-
+  inputTextField.value = "";
   priorityElement.value = "Medium";
-
   render();
-})
+}
 
-// CHANGE: checkbox sync with data 
-todoContainer.addEventListener("change",  async (e) => {
+formContainer.addEventListener("submit", (e) => {
+  e.preventDefault();
+  void handleAddTask();
+});
+addTaskButton.addEventListener("click", () => void handleAddTask());
+
+// SAVE EDIT (click on Save and Enter key share one function)
+async function saveEdit(id: number, newText: string) {
+  const ok = await run(() => modifyStateTodo(id, { title: newText }), "Could not save the task");
+  if (!ok) return; // stay in edit mode, don't redraw and lose the typed text
+
+  state.editingStateTasksIds.delete(id);
+  saveState(state);
+  render();
+}
+
+// CHECKBOX
+todoContainer.addEventListener("change", async (e) => {
   const target = e.target;
   if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
 
   const id = getTaskId(target);
   if (!id) return;
 
-  try {
-    await modifyStateTodo(id, { completed: target.checked });
-  } catch(error){
-    console.error(error);
-    alert(`Coult not update the task: ${error.message}`);
-  }
-
+  await run(() => modifyStateTodo(id, { completed: target.checked }), "Could not update the task");
   render();
 });
 
-// CLICK: delete/edit/save/cancel button(s)
+// CLICK: delete/edit/save/cancel
 todoContainer.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
@@ -82,16 +91,17 @@ todoContainer.addEventListener("click", async (e) => {
   if (!id) return;
 
   if (target.closest(".delete-btn")) {
-    state.editingStateTasksIds.delete(id);
-    await modifyStateTodo(id, { deleted: true })
+    const ok = await run(() => modifyStateTodo(id, { deleted: true }), "Could not delete the task");
+   
+    if (ok) state.editingStateTasksIds.delete(id);
   } else if (target.closest(".edit-btn")) {
     state.editingStateTasksIds.add(id);
   } else if (target.closest(".edit-save-btn")) {
     const input = target.closest(".task-group")?.querySelector<HTMLInputElement>(".edit-input");
     const newText = input?.value.trim();
     if (!newText) return;
-    await modifyStateTodo(id, { title: newText });
-    state.editingStateTasksIds.delete(id);
+    await saveEdit(id, newText);
+    return; // saveEdit already saves and renders
   } else if (target.closest(".edit-cancel-btn")) {
     state.editingStateTasksIds.delete(id);
   } else {
@@ -102,78 +112,41 @@ todoContainer.addEventListener("click", async (e) => {
   render();
 });
 
-// KEYDOWN: save task that is in edit mode with the enter key
-todoContainer.addEventListener("keydown", (e) => {
+// KEYDOWN in edit mode
+todoContainer.addEventListener("keydown", async (e) => {
   const target = e.target;
   if (!(target instanceof HTMLInputElement) || !target.matches(".edit-input")) return;
 
+  const id = getTaskId(target);
+  if (!id) return;
+
   if (e.key === "Enter") {
     e.preventDefault();
-
-    const id = getTaskId(target);
-    if (!id) return;
-
     const newText = target.value.trim();
     if (!newText) return;
-
-    editTask(id, newText);
-    state.editingStateTasksIds.delete(id);
-    saveState(state);
-    render();
+    await saveEdit(id, newText);
   } else if (e.key === "Escape") {
-    const id = getTaskId(target);
-    if (!id) return;
-
     state.editingStateTasksIds.delete(id);
     saveState(state);
     render();
   }
 });
 
-// CLICK: add task button
-addTaskButton.addEventListener("click", async () => {
-  // get the text from the input field
-  const userInput = inputTextField.value.trim();
-  if (!userInput) {
-    alert("Please enter something cuh!");
-    return;
-  }
-
-  const selectedPriority = priorityElement.value;
-  const taskPriority: Priority = isPriority(selectedPriority) ? selectedPriority : "Medium";
-
-  try {
-    await addTodo(userInput, taskPriority);
-  } catch(error){
-    console.error(error);
-    alert("Could not create the task. Is the server running?");
-  }
-
-  // remove everything inside the input text field
-  if (inputTextField) {
-    inputTextField.value = "";
-  }
-
-  priorityElement.value = "Medium";
-
-  render();
-});
-
-// CLICK: clear completed tasks button
+// CLEAR COMPLETED
 clearCompletedTasksBtn.addEventListener("click", async () => {
-  try {
-    await handleClearCompleted();
-  } catch(error){
-    console.error(error);
-    alert(`Could not clear completed tasks. Error: ${error.name}`);
-    return;
+  const ok = await run(handleClearCompleted, "Could not clear completed tasks");
+  if (ok) {
+    // tasks that went to the trash can't be in edit mode anymore
+    state.todos.forEach((t) => {
+      if (t.deleted) state.editingStateTasksIds.delete(t.id);
+    });
+    saveState(state);
   }
-
   render();
 });
 
-// CLICK: task status buttons functionality
-tasksStatusButtons.forEach(btn => {
+// FILTER buttons
+tasksStatusButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     const selectedFilter = btn.dataset.filter;
     if (!isFilter(selectedFilter)) return;
@@ -184,75 +157,45 @@ tasksStatusButtons.forEach(btn => {
   });
 });
 
-// CLICK: trash bin button
+// TRASH screen
 trashBinButton.addEventListener("click", () => {
   state.currentScreen = "Trash";
   saveState(state);
   render();
 });
 
-// CLICK: quit trash bin button
 quitTrashBinButton.addEventListener("click", () => {
   state.currentScreen = "Main";
   saveState(state);
   render();
 });
 
-// CLICK: recover all tasks button
 recoverAllTasksButton.addEventListener("click", async () => {
-  try {
-    await handleRecoverAll();
-  } catch(error){
-    console.error(error);
-    alert(`Could not recover tasks. Error: ${error.name}`);
-    return;
-  }
-
+  await run(handleRecoverAll, "Could not recover tasks");
   render();
 });
 
-// CLICK: delete all tasks button
+// DELETE ALL (empty trash)
 deleteAllTasksButton.addEventListener("click", () => {
   deleteAllDialog.showModal();
-
-  let countDeletedTasks = 0;
-  state.todos.forEach(todo => {
-    if(todo.deleted === true){
-      countDeletedTasks++;
-    }
-  });
-
-  if(!confirmCount) return;
-  confirmCount.innerHTML = String(countDeletedTasks);
+  if (confirmCount) confirmCount.textContent = String(countDeleted(state.todos));
 });
+
 cancelDeleteAllDialog.addEventListener("click", () => {
   deleteAllDialog.close();
-})
+});
+
 confirmDeleteAllButton.addEventListener("click", async () => {
   deleteAllDialog.close();
+  if (countDeleted(state.todos) === 0) return;
 
-  let countDeletedTasks = 0;
-  state.todos.forEach(todo => {
-    if(todo.deleted === true){
-      countDeletedTasks++;
-    }
-  });
-
-  if(!countDeletedTasks) return;
-  
-  try {
-    await handleDeleteAll();
-  } catch(error) {
-    console.error(error);
-    alert(`Unknown error has occurred. Error: ${error.message}`);
-  }
-
+  await run(handleDeleteAll, "Could not empty the trash");
   render();
-})
+});
 
+// TRASH: recover one / delete one
+let pendingDeleteId: number | null = null;
 
-let pendingDeleteId: string | null = null;
-// CLICK: recover task and delete task button(s)
 trashBinBodyContainer.addEventListener("click", async (e) => {
   const target = e.target;
   if (!(target instanceof Element)) return;
@@ -261,9 +204,9 @@ trashBinBodyContainer.addEventListener("click", async (e) => {
   if (!id) return;
 
   if (target.closest(".recover-task-button")) {
-    await modifyStateTodo(id, { deleted: false });
+    await run(() => modifyStateTodo(id, { deleted: false }), "Could not recover the task");
   } else if (target.closest(".delete-task-button")) {
-    pendingDeleteId = String(id);
+    pendingDeleteId = id;
     deleteTaskDialog.showModal();
     return;
   } else {
@@ -274,21 +217,17 @@ trashBinBodyContainer.addEventListener("click", async (e) => {
 });
 
 confirmDeleteTaskButton.addEventListener("click", async () => {
-  if (pendingDeleteId){
-    try {
-      await deleteTodoPermanently(Number(pendingDeleteId));
-    } catch(error) {
-      console.error(error);
-      alert(`Could not delete the todo. Error name: ${error.name}`);
-      return;
-    }
-  }
+  const idToDelete = pendingDeleteId;
   pendingDeleteId = null;
   deleteTaskDialog.close();
+
+  if (idToDelete !== null) {
+    await run(() => deleteTodoPermanently(idToDelete), "Could not delete the task");
+  }
   render();
-})
+});
 
 cancelDeleteTaskButton.addEventListener("click", () => {
   pendingDeleteId = null;
   deleteTaskDialog.close();
-})
+});

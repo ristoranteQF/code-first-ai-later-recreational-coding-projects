@@ -1,5 +1,5 @@
 import type { Todo, State, Priority } from "./types.ts";
-import { loadState, saveState } from "./storage.ts";
+import { loadState } from "./storage.ts";
 import * as api from "./api.ts";
 
 const defaultState: State = {
@@ -17,7 +17,6 @@ export async function loadTodos(): Promise<void> {
 
 export async function addTodo(title: string, priority: Priority): Promise<void> {
   const created = await api.createTodo(title, priority);
-  if(!created) return;
   state.todos.push(created);
 }
 
@@ -33,39 +32,19 @@ export async function modifyStateTodo(
 }
 
 export async function deleteTodoPermanently(id: number): Promise<void> {
-  const todo = state.todos.find((t) => t.id === id);
-  if (!todo) throw new Error(`Todo ${id} not found in local state`);
-
   await api.deleteTodo(id);
-  state.todos = state.todos.filter(todo => todo.id !== id);
+  state.todos = state.todos.filter((t) => t.id !== id);
 }
 
 export async function handleClearCompleted(): Promise<void> {
-  const completedTodos = await api.clearCompleted();
-  if(!completedTodos) return;
-
-  state.todos = [...completedTodos];
+  state.todos = await api.clearCompleted();
 }
 
 export async function handleRecoverAll(): Promise<void> {
-  let countsoftDeletedTodos = 0;
-  state.todos.forEach(todo => {
-    if(todo.deleted === true){
-      countsoftDeletedTodos++;
-    }
-  });
-
-  if(!countsoftDeletedTodos) return;
-
-  const recovered = await api.recoverAll();
-  if(!recovered) return;
-
-  state.todos = [...recovered.recovered];
+  if (!state.todos.some((t) => t.deleted)) return;
+  state.todos = await api.recoverAll();
 }
 
 export async function handleDeleteAll(): Promise<void> {
-  const currentTasks = await api.deleteAll();
-  if(!currentTasks) return;
-
-  state.todos = [...currentTasks.deleted];
+  state.todos = await api.deleteAll();
 }

@@ -31,13 +31,9 @@ export async function updateTodo(
   return res.json();
 }
 
-export async function deleteTodo(id: number): Promise<void>{
-  const res = await fetch(`${BASE}/${id}`, {
-    method: "DELETE",
-    body: JSON.stringify({id}),
-  });
-  if(!res.ok) throw new Error("Failed to delete todo.");
-  return;
+export async function deleteTodo(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete todo.");
 }
 
 export async function clearCompleted(): Promise<Todo[]> {

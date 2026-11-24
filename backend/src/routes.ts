@@ -15,33 +15,15 @@ router.post("/", (req, res) => {
 });
 
 router.post("/clear-completed", (_req, res) => {
-  try {
-    const cleared = clearCompleted();
-    res.status(200).json(cleared);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong." });
-  }
+  res.json(clearCompleted());
 });
 
 router.post("/recover-all", (_req, res) => {
-  try {
-    const recovered = recoverAll();
-    res.status(200).json({ recovered });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
-  }
+  res.json(recoverAll());
 });
 
 router.delete("/delete-all", (_req, res) => {
-  try {
-    const deleted = deleteAll();
-    res.status(200).json({ deleted });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
-  }
+  res.json(deleteAll());
 });
 
 router.patch("/:id", (req, res) => {
@@ -50,17 +32,19 @@ router.patch("/:id", (req, res) => {
   if (!changes) return res.status(400).json({ error: "invalid changes" });
 
   const todo = updateTodo(id, changes);
-  if (!todo) return res.sendStatus(404);
+  if (!todo) return res.status(404).json({ error: "todo not found" });
   res.json(todo);
 });
 
 router.delete("/:id", (req, res) => {
   const id = Number(req.params.id);
-  if(typeof id !== "number"){
-    return res.status(400).json({error: "Invalid id, must be of type number."});
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "id must be an integer" });
   }
-
-  res.status(201).json(deleteTodoPermanently(id));
+  if (!deleteTodoPermanently(id)) {
+    return res.status(404).json({ error: "todo not found" });
+  }
+  res.sendStatus(204);
 });
 
 export default router;
