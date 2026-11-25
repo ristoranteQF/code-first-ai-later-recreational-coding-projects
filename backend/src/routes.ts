@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { todos, createTodo, updateTodo, clearCompleted, recoverAll, deleteAll, deleteTodoPermanently } from "./store.js";
+import { getTodos, createTodo, updateTodo, clearCompleted, recoverAll, deleteAll, deleteTodoPermanently } from "./store.js";
 import { isPriority, parseChanges } from "./guards.js";
 
 const router = Router();
 
-router.get("/", (_req, res) => res.json(todos));
+router.get("/", async (_req, res) => {
+  res.json(await getTodos());
+});
 
 router.post("/", (req, res) => {
   const { title, priority = "Medium" } = req.body ?? {};

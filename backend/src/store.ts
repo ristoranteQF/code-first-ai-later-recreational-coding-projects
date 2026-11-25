@@ -1,8 +1,19 @@
 import type { Todo, Priority } from "./types.js";
+import pg from "pg";
 
-export let todos: Todo[] = [];
-let nextId = 1;
+const { Pool } = pg;
 
+const connectionString = process.env.DATABASE_URL;
+if(!connectionString){
+  throw new Error("DATABASE_URL is missing. Check your .env file and the dev script.");
+}
+
+const pool = new Pool({ connectionString });
+
+export const getTodos = async (): Promise<Todo[]> => {
+  const result = await pool.query<Todo>("SELECT * FROM todos ORDER BY id");
+  return result.rows;
+};
 
 export const createTodo = (title: string, priority: Priority): Todo => {
   const todo: Todo = { id: nextId++, title, priority, completed: false, deleted: false };
